@@ -1,0 +1,4 @@
+hold/
+*.asm
+*.prg
+*.vice-mon-list  

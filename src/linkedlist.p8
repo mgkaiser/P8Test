@@ -1,5 +1,4 @@
 %import fstruct
-%import struct
 %import fmalloc
 
 linkedlist_item {

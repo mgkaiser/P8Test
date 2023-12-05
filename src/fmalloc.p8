@@ -1,7 +1,5 @@
 %import struct
 %import fstruct
-%import textio
-%import conv
 
 fmalloc_root {
     
