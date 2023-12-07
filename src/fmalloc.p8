@@ -356,7 +356,7 @@ fmalloc {
             ; Figure out where the new block belongs            
             fmalloc_item.next_get(current, &current_next);                                                          
             
-            while (fptr.compare(&current_next, &fptr.NULL) != fptr.compare_equal) and (fptr.compare(node, current_next) == fptr.compare_greater) {                                                        
+            while (fptr.isnull(&current_next) != true) and (fptr.compare(node, current_next) == fptr.compare_greater) {                                                        
                 current = current_next;                                       
                 fmalloc_item.next_get(current, &current_next);                                                                                       
             }
