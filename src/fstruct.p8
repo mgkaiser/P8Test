@@ -1,6 +1,6 @@
 fstruct {
 
-    asmsub set_zfp(uword pointer @R0, ubyte offset @R2) {
+    inline asmsub set_zfp(uword pointer @R0, ubyte offset @R2) {
     %asm{{
       
     ; Set Bank and extract pointer
@@ -24,7 +24,7 @@ fstruct {
     }}
     }
 
-    asmsub set(uword pointer @R0, ubyte offset @R2, ubyte count @X, uword valuePointer @R1) {
+    inline asmsub set(uword pointer @R0, ubyte offset @R2, ubyte count @X, uword valuePointer @R1) {
     %asm {{
     ; Set Bank and extract pointer
     ldy #$00
@@ -49,7 +49,7 @@ fstruct {
     }}
     }
 
-    asmsub get(uword pointer @R0, ubyte offset @R2, ubyte count @X, uword valuePointer @R1) {
+    inline asmsub get(uword pointer @R0, ubyte offset @R2, ubyte count @X, uword valuePointer @R1) {
     %asm {{     
     ; Set Bank and extract pointer
     ldy #$00
@@ -74,7 +74,7 @@ fstruct {
     }}        
     }  
         
-    asmsub set_w(uword fptr @R0, ubyte offset @Y, uword valuePointer @R1) {
+    inline asmsub set_w(uword fptr @R0, ubyte offset @Y, uword valuePointer @R1) {
     %asm {{ 
     phy
     
@@ -104,7 +104,7 @@ fstruct {
     }}
     }
 
-    asmsub set_wi(uword fptr @R0, ubyte offset @Y, uword valuePointer @R1) {
+    inline asmsub set_wi(uword fptr @R0, ubyte offset @Y, uword valuePointer @R1) {
     %asm {{ 
     
     phy  
@@ -131,7 +131,7 @@ fstruct {
     }}
     }
 
-    asmsub get_w(uword fptr @R0, ubyte offset @Y, uword valuePointer @R1) {
+    inline asmsub get_w(uword fptr @R0, ubyte offset @Y, uword valuePointer @R1) {
     %asm {{
 
     phy
@@ -167,7 +167,7 @@ fptr {
     const ubyte SIZEOF_FPTR = 3;
     byte[] NULL = [0,0,0];
     
-    asmsub b2p(ubyte bank @A, uword ptr @R1, uword fptr @R0) clobbers (Y)
+    inline asmsub b2p(ubyte bank @A, uword ptr @R1, uword fptr @R0) clobbers (Y)
     {
     %asm {{      
     ldy #$00
@@ -183,31 +183,75 @@ fptr {
 
     const byte compare_equal = 0;
     const byte compare_greater = 1;
-    const byte compare_less = -1;
+    const byte compare_less = -1;    
 
-    sub isnull(ubyte[fptr.SIZEOF_FPTR] ptr1) -> bool {                        
-        return ((ptr1[0] == 0) and (ptr1[1] == 0) and (ptr1[1] == 0)); 
+    inline asmsub isnull(uword ptr1 @R0) clobbers(Y) -> bool @A {
+    %asm{{
+    ldy  #0	
+	lda  (cx16.r0),y
+	iny	
+	clc
+	adc  (cx16.r0),y
+	iny	
+	clc
+	adc  (cx16.r0),y
+	beq  +
+	lda  #1
+    +
+    eor  #1	
+    }}
+    }
+    
+    inline asmsub compare(uword ptr1 @R0, uword ptr2 @R1) -> byte @A {
+    %asm{{
+    ldy #$00
+    lda(cx16.r0),y
+    cmp(cx16.r1),y
+    bcc +
+    beq ++
+    lda  #1	
+    sec
+    bcs +++++++
+    + ; 1
+    lda  #-1
+	sec
+    bcs ++++++
+    + ; 2
+    iny
+    ldy #$00
+    lda(cx16.r0),y
+    cmp(cx16.r1),y
+    bcc +
+    beq ++
+    lda  #1
+	sec
+    bcs +++++
+    + ; 3
+    lda  #-1
+    sec
+    bcs ++++
+    + ; 4
+    iny
+    ldy #$00
+    lda(cx16.r0),y
+    cmp(cx16.r1),y
+    bcc +
+    beq ++
+    lda  #1
+	sec
+    bcs +++
+    + ; 5
+    lda  #-1
+    sec
+    bcs ++
+    + ; 6
+    lda #0
+    + ; 7
+
+    }}
     }
 
-    sub compare(ubyte[fptr.SIZEOF_FPTR] ptr1, ubyte[fptr.SIZEOF_FPTR] ptr2) -> byte {                
-        if ptr1[0] > ptr2[0] {
-            return compare_greater
-        } else if ptr1[0] < ptr2[0] {
-            return compare_less
-        } else {
-            uword addr1 = mkword(ptr1[2], ptr1[1]);
-            uword addr2 = mkword(ptr2[2], ptr2[1]);
-            if addr1 > addr2 {
-                return compare_greater
-            } else if addr1 < addr2 {
-                return compare_less
-            } else {
-                return compare_equal
-            }
-        }        
-    }
-
-    asmsub set(uword fptr @R0, uword valuePointer @R1) clobbers (Y) {
+    inline asmsub set(uword fptr @R0, uword valuePointer @R1) clobbers (Y) {
     %asm {{     
     ; Set Bank and extract pointer
     ldy #$00
@@ -232,7 +276,7 @@ fptr {
     }}
     }    
 
-    asmsub get(uword fptr @R0, uword valuePointer @R1) clobbers (Y) {
+    inline asmsub get(uword fptr @R0, uword valuePointer @R1) clobbers (Y) {
     %asm {{     
     ; Set Bank and extract pointer
     ldy #$00
@@ -257,7 +301,7 @@ fptr {
     }}        
     }   
 
-    asmsub memcopy_in(uword fptr @R0, uword valuePointer @R1, ubyte count @X) clobbers (Y) {
+    inline asmsub memcopy_in(uword fptr @R0, uword valuePointer @R1, ubyte count @X) clobbers (Y) {
     %asm {{     
     ; Set Bank and extract pointer
     ldy #$00
@@ -281,7 +325,7 @@ fptr {
     }}
     }   
 
-    asmsub memcopy_out(uword fptr @R0, uword valuePointer @R1, ubyte count @X) clobbers (Y) {
+    inline asmsub memcopy_out(uword fptr @R0, uword valuePointer @R1, ubyte count @X) clobbers (Y) {
     %asm {{     
     ; Set Bank and extract pointer
     ldy #$00

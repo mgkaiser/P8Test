@@ -47,7 +47,7 @@ main {
         txt.clear_screen();
 
         uword i;
-        for i in 1 to $100 {   
+        for i in 1 to $200 {   
 
             ; Build the string
             conv.str_uwhex(i)            
@@ -69,7 +69,30 @@ main {
             txt.print(test);        
         }
 
-        txt.clear_screen();   
+        for i in 1 to $200 {   
+
+            ; Build the string
+            conv.str_uwhex(i)            
+            test = "head: ";
+            void string.copy(conv.string_out, &test + 6);    
+
+            ; Copy it into far memory            
+            fmalloc.malloc(&fpm, 16, pText)              
+            fptr.memcopy_in(&pText, &test, 11);
+            
+            ; Add it to the list            
+            linkedlist.add_first(&fpm, llr, &pText, ptr1);    
+
+            ; Dump the result            
+            txt.home();
+            dump_fptr("ptext: ", pText);       
+            dump_fptr(" ptr1: ", ptr1);             
+            txt.print(" ");              
+            txt.print(test);        
+        }
+
+        ;txt.clear_screen(); 
+        txt.print("\n")  ;
 
         ; Walk the list
         linkedlist.first(&llr, ptr1);
@@ -90,7 +113,8 @@ main {
             linkedlist.next(ptr1, ptr1);
         }
 
-        txt.clear_screen();   
+        ;txt.clear_screen();   
+        txt.print("\n")  ;
 
         ; Walk the list backwards
         linkedlist.last(&llr, ptr1);
