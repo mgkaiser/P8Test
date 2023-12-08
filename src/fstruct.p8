@@ -201,49 +201,63 @@ fptr {
     eor  #1	
     }}
     }
+
+    inline asmsub equal(uword ptr1 @R0, uword ptr2 @R1) clobbers(Y) -> bool @A {
+    %asm{{    
+    ldy  #0	
+	lda  (cx16.r0),y    
+    cmp  (cx16.r1),y
+    bne +
+	iny	
+	lda  (cx16.r0),y    
+    cmp  (cx16.r1),y
+    bne +
+	iny	
+	lda  (cx16.r0),y    
+    cmp  (cx16.r1),y	
+    bne +
+	lda #1
+    bra ++
+    +
+    lda #0    
+    +
+    }}  
+    }
     
     inline asmsub compare(uword ptr1 @R0, uword ptr2 @R1) -> byte @A {
     %asm{{
     ldy #$00
     lda(cx16.r0),y
     cmp(cx16.r1),y
-    bcc +
-    beq ++
-    lda  #1	
-    sec
-    bcs +++++++
+    bcc +                   ; r0[0] < r1[0]
+    beq ++                  ; r0[0] == r1[0]
+    lda  #1	                ; if it isn't < or == then it is >    
+    bra +++++++
     + ; 1
-    lda  #-1
-	sec
-    bcs ++++++
-    + ; 2
-    iny
-    ldy #$00
+    lda  #-1	
+    bra ++++++
+    + ; 2    
+    ldy #$02
     lda(cx16.r0),y
     cmp(cx16.r1),y
-    bcc +
-    beq ++
-    lda  #1
-	sec
-    bcs +++++
+    bcc +                   ; r0[2] < r1[2]
+    beq ++                  ; r0[2] == r1[2]
+    lda  #1                 ; if it isn't < or == then it is >	
+    bra +++++
     + ; 3
-    lda  #-1
-    sec
-    bcs ++++
-    + ; 4
-    iny
-    ldy #$00
+    lda  #-1    
+    bra ++++
+    + ; 4    
+    ldy #$01
     lda(cx16.r0),y
     cmp(cx16.r1),y
-    bcc +
-    beq ++
-    lda  #1
-	sec
-    bcs +++
+    bcc +                   ; r0[1] < r1[1]
+    beq ++                  ; r0[1] == r1[1]
+    lda  #1                 ; if it isn't < or == then it is >
+	bra +++
     + ; 5
-    lda  #-1
-    sec
-    bcs ++
+    lda  #-1    
+    bra ++
     + ; 6
     lda #0
     + ; 7
