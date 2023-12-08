@@ -18,9 +18,10 @@ fmalloc_root {
         struct.set(ptr, FMALLOC_available, fptr.SIZEOF_FPTR, value);
     }
 
-    sub assigned_get(uword ptr, uword result) {        
-        struct.get(ptr, FMALLOC_assigned, fptr.SIZEOF_FPTR, result);
-    }
+    ; Never used
+    ;sub assigned_get(uword ptr, uword result) {        
+    ;    struct.get(ptr, FMALLOC_assigned, fptr.SIZEOF_FPTR, result);
+    ;}
 
     sub assigned_set(uword ptr, uword value) {
         struct.set(ptr, FMALLOC_assigned, fptr.SIZEOF_FPTR, value);
@@ -94,9 +95,10 @@ fmalloc_item {
         fstruct.set_w(ptr, FMALLOC_ITEM_size, value);
     }
 
-    sub size_set_wi(ubyte[3] ptr, uword value) {
-        fstruct.set_wi(ptr, FMALLOC_ITEM_size, value);
-    }    
+    ; Never used
+    ;sub size_set_wi(ubyte[3] ptr, uword value) {
+    ;    fstruct.set_wi(ptr, FMALLOC_ITEM_size, value);
+    ;}    
 }
 
 fmalloc {        
@@ -155,13 +157,13 @@ fmalloc {
         ; Find a suitable block
         fmalloc_root.available_get(pm, &current)                
         fmalloc_item.size_get(current, &current_size);                                
-        while (fptr.compare(&current, &fptr.NULL) != fptr.compare_equal) and (current_size < size) {            
+        while fptr.notequal(&current, &fptr.NULL) and (current_size < size) {            
             fmalloc_item.next_get(current, &current);
             fmalloc_item.size_get(current, &current_size);
         }
         
         ; If there's nothing suitable, we're either out of memory or fragged.
-        if fptr.compare(&current, &fptr.NULL) == fptr.compare_equal {
+        if fptr.isnull(&current) {
             result[0] = 0;
             result[1] = 0;
             result[2] = 0;            
@@ -227,7 +229,7 @@ fmalloc {
     sub free(uword pm, ubyte[fptr.SIZEOF_FPTR] ptr)
     {
         ; Match stdlib free() NULL interface
-        if fptr.compare(&ptr, &fptr.NULL) == fptr.compare_equal return;
+        if fptr.isnull(&ptr) return;
 
         ; Get the node of this memory
         ubyte[fptr.SIZEOF_FPTR] node;
@@ -269,7 +271,7 @@ fmalloc {
         temp_ptr[1] = lsb(temp_result);
         temp_ptr[2] = msb(temp_result);
 
-        while (fptr.compare(&node_prev, &fptr.NULL) != fptr.compare_equal) and (fptr.compare(&node, &temp_ptr) != fptr.compare_equal) {        
+        while (fptr.isnull(&node_prev) != true) and (fptr.notequal(&node, &temp_ptr)) {        
             node[0] = node_prev[0];
             node[1] = node_prev[1];
             node[2] = node_prev[2];                    
@@ -289,7 +291,7 @@ fmalloc {
         temp_ptr[1] = lsb(temp_result);
         temp_ptr[2] = msb(temp_result);
 
-        while fptr.compare(&node_next, &temp_ptr) == fptr.compare_equal {                
+        while fptr.equal(&node_next, &temp_ptr) {                
             uword node_next_size;            
             fmalloc_item.size_get(node_next, &node_next_size);
             uword temp_node_size = node_next_size + fmalloc_item.SIZEOF_FMALLOC_ITEM
@@ -324,7 +326,7 @@ fmalloc {
         struct.get(root, 0, fptr.SIZEOF_FPTR, &xRoot);            
 
         ; There is no root
-        if fptr.compare(&xRoot, &fptr.NULL) == fptr.compare_equal {                        
+        if fptr.isnull(&xRoot) {                        
             xRoot[0]=node[0];
             xRoot[1]=node[1];
             xRoot[2]=node[2];
@@ -356,13 +358,15 @@ fmalloc {
             ; Figure out where the new block belongs            
             fmalloc_item.next_get(current, &current_next);                                                          
             
-            while (fptr.isnull(&current_next) != true) and (fptr.compare(node, current_next) == fptr.compare_greater) {                                                        
-                current = current_next;                                       
+            while (fptr.isnull(&current_next) != true) and (fptr.compare(current_next,node) == fptr.compare_less) {                                                        
+                current[0] = current_next[0]; 
+                current[1] = current_next[1]; 
+                current[2] = current_next[2];                                                       
                 fmalloc_item.next_get(current, &current_next);                                                                                       
             }
             
             ; New block is at the end of the list
-            if fptr.compare(&current_next, &fptr.NULL) == fptr.compare_equal {                                                    
+            if fptr.isnull(&current_next) {                                                    
                 fmalloc_item.prev_set(node, &current);                                                  
                 fmalloc_item.next_set(node, &fptr.NULL);    
                 fmalloc_item.next_set(current, node);                                    
@@ -389,16 +393,16 @@ fmalloc {
         struct.get(root, 0, fptr.SIZEOF_FPTR, &xRoot);      
 
         ; Remove the node        
-        if fptr.compare(&node_prev, &fptr.NULL) != fptr.compare_equal {            
+        if fptr.isnull(&node_prev) != true {            
             fmalloc_item.next_set(node_prev, &node_next); 
         }
-        if fptr.compare(&node_next, &fptr.NULL) != fptr.compare_equal {            
+        if fptr.isnull(&node_next) != true {            
             fmalloc_item.prev_set(node_next, &node_prev);                                                                                                                          
         }
                 
         ; Fixup root if the node was root
-        if fptr.compare(node, xRoot) == fptr.compare_equal {  
-            if fptr.compare(&node_prev, &fptr.NULL) != fptr.compare_equal {
+        if fptr.equal(node, xRoot) {  
+            if fptr.isnull(&node_prev) != true {
                 xRoot = node_prev;                
             } else {
                 xRoot = node_next;                

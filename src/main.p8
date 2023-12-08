@@ -12,11 +12,135 @@ main {
     
     sub start() {
                 
-        txt.print("p8test\n");                                  
+        txt.print("p8test\n"); 
 
+        ; Test fptr.compare
+        ;fptr_compare_test(); 
+
+        ; Test fptr.equal
+        ;fptr_equal_test()                                
+
+        ; Test Linked List
         fmalloc_init();
         linkedlist_test();
         
+    }
+
+    sub fptr_equal_test() {
+        ubyte[fptr.SIZEOF_FPTR] fptr1 = [$02, $34, $12];
+        ubyte[fptr.SIZEOF_FPTR] fptr2;
+        bool result;
+
+        fptr2 = [$02, $34, $12];                
+        result = fptr.equal(&fptr1, &fptr2);
+        dump_fptr("\nfptr1: ", fptr1); 
+        dump_fptr(" fptr2: ", fptr2); 
+        txt.print(" ");
+        if result txt.print("true") else txt.print("false")        
+        txt.print("\n");
+
+        fptr2 = [$01, $34, $12];                
+        result = fptr.equal(&fptr1, &fptr2);
+        dump_fptr("\nfptr1: ", fptr1); 
+        dump_fptr(" fptr2: ", fptr2); 
+        txt.print(" ");
+        if result txt.print("true") else txt.print("false")        
+        txt.print("\n");
+
+        fptr2 = [$02, $35, $12];                
+        result = fptr.equal(&fptr1, &fptr2);
+        dump_fptr("\nfptr1: ", fptr1); 
+        dump_fptr(" fptr2: ", fptr2); 
+        txt.print(" ");
+        if result txt.print("true") else txt.print("false")        
+        txt.print("\n");
+
+        fptr2 = [$02, $34, $11];                
+        result = fptr.equal(&fptr1, &fptr2);
+        dump_fptr("\nfptr1: ", fptr1); 
+        dump_fptr(" fptr2: ", fptr2); 
+        txt.print(" ");
+        if result txt.print("true") else txt.print("false")        
+        txt.print("\n");
+
+        fptr2 = [$01, $01, $01];                
+        result = fptr.equal(&fptr1, &fptr2);
+        dump_fptr("\nfptr1: ", fptr1); 
+        dump_fptr(" fptr2: ", fptr2); 
+        txt.print(" ");
+        if result txt.print("true") else txt.print("false")        
+        txt.print("\n");
+    }
+
+    sub fptr_compare_test()
+    {
+        ubyte[fptr.SIZEOF_FPTR] fptr1 = [$02, $34, $12];
+        ubyte[fptr.SIZEOF_FPTR] fptr2;
+        byte result;
+
+        fptr2 = [$01, $34, $12];                
+        result = fptr.compare(&fptr1, &fptr2);
+        dump_fptr("\nfptr1: ", fptr1); 
+        dump_fptr(" fptr2: ", fptr2); 
+        txt.print(" ");
+        conv.str_b(result)
+        txt.print(conv.string_out);
+        txt.print("\n");
+        
+        fptr2 = [$03, $34, $12];                
+        result = fptr.compare(&fptr1, &fptr2);
+        dump_fptr("\nfptr1: ", fptr1); 
+        dump_fptr(" fptr2: ", fptr2); 
+        txt.print(" ");
+        conv.str_b(result)
+        txt.print(conv.string_out);
+        txt.print("\n");
+
+        fptr2 = [$02, $34, $11];                
+        result = fptr.compare(&fptr1, &fptr2);
+        dump_fptr("\nfptr1: ", fptr1); 
+        dump_fptr(" fptr2: ", fptr2); 
+        txt.print(" ");
+        conv.str_b(result)
+        txt.print(conv.string_out);
+        txt.print("\n");
+
+        fptr2 = [$02, $34, $13];                
+        result = fptr.compare(&fptr1, &fptr2);
+        dump_fptr("\nfptr1: ", fptr1); 
+        dump_fptr(" fptr2: ", fptr2); 
+        txt.print(" ");
+        conv.str_b(result)
+        txt.print(conv.string_out);
+        txt.print("\n");
+
+        fptr2 = [$02, $33, $12];                
+        result = fptr.compare(&fptr1, &fptr2);
+        dump_fptr("\nfptr1: ", fptr1); 
+        dump_fptr(" fptr2: ", fptr2); 
+        txt.print(" ");
+        conv.str_b(result)
+        txt.print(conv.string_out);
+        txt.print("\n");
+
+        fptr2 = [$02, $35, $12];                
+        result = fptr.compare(&fptr1, &fptr2);
+        dump_fptr("\nfptr1: ", fptr1); 
+        dump_fptr(" fptr2: ", fptr2); 
+        txt.print(" ");
+        conv.str_b(result)
+        txt.print(conv.string_out);
+        txt.print("\n");
+
+        fptr2 = [$02, $34, $12];                
+        result = fptr.compare(&fptr1, &fptr2);
+        dump_fptr("\nfptr1: ", fptr1); 
+        dump_fptr(" fptr2: ", fptr2); 
+        txt.print(" ");
+        conv.str_b(result)
+        txt.print(conv.string_out);
+        txt.print("\n");
+
     }
 
     sub malloc_test()
@@ -47,7 +171,7 @@ main {
         txt.clear_screen();
 
         uword i;
-        for i in 1 to $100 {   
+        for i in 1 to $80 {   
 
             ; Build the string
             conv.str_uwhex(i)            
@@ -69,11 +193,34 @@ main {
             txt.print(test);        
         }
 
-        txt.clear_screen();   
+        for i in 1 to $80 {   
+
+            ; Build the string
+            conv.str_uwhex(i)            
+            test = "head: ";
+            void string.copy(conv.string_out, &test + 6);    
+
+            ; Copy it into far memory            
+            fmalloc.malloc(&fpm, 16, pText)              
+            fptr.memcopy_in(&pText, &test, 11);
+            
+            ; Add it to the list            
+            linkedlist.add_first(&fpm, llr, &pText, ptr1);    
+
+            ; Dump the result            
+            txt.home();
+            dump_fptr("ptext: ", pText);       
+            dump_fptr(" ptr1: ", ptr1);             
+            txt.print(" ");              
+            txt.print(test);        
+        }
+
+        ;txt.clear_screen(); 
+        txt.print("\n")  ;
 
         ; Walk the list
         linkedlist.first(&llr, ptr1);
-        while fptr.compare(&ptr1, &fptr.NULL) != fptr.compare_equal {
+        while fptr.isnull(&ptr1) != true {
 
             ; Copy the string into near memory
             linkedlist_item.data_get(ptr1, pText);
@@ -90,11 +237,12 @@ main {
             linkedlist.next(ptr1, ptr1);
         }
 
-        txt.clear_screen();   
+        ;txt.clear_screen();   
+        txt.print("\n")  ;
 
         ; Walk the list backwards
         linkedlist.last(&llr, ptr1);
-        while fptr.compare(&ptr1, &fptr.NULL) != fptr.compare_equal {
+        while fptr.isnull(&ptr1) != true {
 
             ; Copy the string into near memory
             linkedlist_item.data_get(ptr1, pText);
