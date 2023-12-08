@@ -18,11 +18,11 @@ main {
         ;fptr_compare_test(); 
 
         ; Test fptr.equal
-        fptr_equal_test()                                
+        ;fptr_equal_test()                                
 
         ; Test Linked List
-        ;fmalloc_init();
-        ;linkedlist_test();
+        fmalloc_init();
+        linkedlist_test();
         
     }
 
@@ -171,7 +171,7 @@ main {
         txt.clear_screen();
 
         uword i;
-        for i in 1 to $200 {   
+        for i in 1 to $80 {   
 
             ; Build the string
             conv.str_uwhex(i)            
@@ -193,7 +193,7 @@ main {
             txt.print(test);        
         }
 
-        for i in 1 to $200 {   
+        for i in 1 to $80 {   
 
             ; Build the string
             conv.str_uwhex(i)            

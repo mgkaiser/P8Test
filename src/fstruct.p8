@@ -223,6 +223,28 @@ fptr {
     +
     }}  
     }
+
+    inline asmsub notequal(uword ptr1 @R0, uword ptr2 @R1) clobbers(Y) -> bool @A {
+    %asm{{    
+    ldy  #0	
+	lda  (cx16.r0),y    
+    cmp  (cx16.r1),y
+    bne +
+	iny	
+	lda  (cx16.r0),y    
+    cmp  (cx16.r1),y
+    bne +
+	iny	
+	lda  (cx16.r0),y    
+    cmp  (cx16.r1),y	
+    bne +
+	lda #0
+    bra ++
+    +
+    lda #1    
+    +
+    }}  
+    }
     
     inline asmsub compare(uword ptr1 @R0, uword ptr2 @R1) -> byte @A {
     %asm{{

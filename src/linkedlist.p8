@@ -168,7 +168,7 @@ linkedlist {
         
         ;  If the thing you're adding before is the head just call add first
         linkedlist_root.head_get(root, &pHead);        
-        if (fptr.isnull(&pHead)) or (fptr.compare(&ptr, &pHead) == fptr.compare_equal) {
+        if (fptr.isnull(&pHead)) or (fptr.equal(&ptr, &pHead)) {
             add_first(heap, root, data, &pNew);
         }
         else {
@@ -190,7 +190,7 @@ linkedlist {
         
         ;  If the thing you're adding after is the tail just call add last
         linkedlist_root.head_get(root, &pTail);        
-        if (fptr.isnull(&pTail)) or (fptr.compare(&ptr, &pTail) == fptr.compare_equal) {
+        if (fptr.isnull(&pTail)) or (fptr.equal(&ptr, &pTail)) {
             add_last(heap, root, data, &pNew);
         }
         else {

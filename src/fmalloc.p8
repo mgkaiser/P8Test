@@ -157,7 +157,7 @@ fmalloc {
         ; Find a suitable block
         fmalloc_root.available_get(pm, &current)                
         fmalloc_item.size_get(current, &current_size);                                
-        while (fptr.compare(&current, &fptr.NULL) != fptr.compare_equal) and (current_size < size) {            
+        while fptr.notequal(&current, &fptr.NULL) and (current_size < size) {            
             fmalloc_item.next_get(current, &current);
             fmalloc_item.size_get(current, &current_size);
         }
@@ -271,7 +271,7 @@ fmalloc {
         temp_ptr[1] = lsb(temp_result);
         temp_ptr[2] = msb(temp_result);
 
-        while (fptr.isnull(&node_prev) != true) and (fptr.compare(&node, &temp_ptr) != fptr.compare_equal) {        
+        while (fptr.isnull(&node_prev) != true) and (fptr.notequal(&node, &temp_ptr)) {        
             node[0] = node_prev[0];
             node[1] = node_prev[1];
             node[2] = node_prev[2];                    
@@ -291,7 +291,7 @@ fmalloc {
         temp_ptr[1] = lsb(temp_result);
         temp_ptr[2] = msb(temp_result);
 
-        while fptr.compare(&node_next, &temp_ptr) == fptr.compare_equal {                
+        while fptr.equal(&node_next, &temp_ptr) {                
             uword node_next_size;            
             fmalloc_item.size_get(node_next, &node_next_size);
             uword temp_node_size = node_next_size + fmalloc_item.SIZEOF_FMALLOC_ITEM
@@ -366,7 +366,7 @@ fmalloc {
             }
             
             ; New block is at the end of the list
-            if fptr.compare(&current_next, &fptr.NULL) == fptr.compare_equal {                                                    
+            if fptr.isnull(&current_next) {                                                    
                 fmalloc_item.prev_set(node, &current);                                                  
                 fmalloc_item.next_set(node, &fptr.NULL);    
                 fmalloc_item.next_set(current, node);                                    
@@ -401,7 +401,7 @@ fmalloc {
         }
                 
         ; Fixup root if the node was root
-        if fptr.compare(node, xRoot) == fptr.compare_equal {  
+        if fptr.equal(node, xRoot) {  
             if fptr.isnull(&node_prev) != true {
                 xRoot = node_prev;                
             } else {
