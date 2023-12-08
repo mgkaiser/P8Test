@@ -36,6 +36,16 @@
 
 >Takes "ptr1" and returns "true" if it is null, otherwise "false"
 
+#### **asmsub equal(uword ptr1 @R0, uword ptr2 @R1) clobbers(Y) -> bool @A**
+
+>Returns true if "ptr1" and "ptr2" are equal, otherwise false
+>This is more compact and faster than "compare" if all you want to test is equality
+
+#### **asmsub notequal(uword ptr1 @R0, uword ptr2 @R1) clobbers(Y) -> bool @A**
+
+>Returns true if "ptr1" and "ptr2" are not equal, otherwise false.
+>This is more compact and faster than "compare" if all you want to test is inequality
+
 #### **sub compare(ubyte[fptr.SIZEOF_FPTR] ptr1, ubyte[fptr.SIZEOF_FPTR] ptr2) -> byte**
 
 >Compares ptr1 and ptr2
