@@ -173,6 +173,16 @@ linkedlist {
         }
         else {
 
+            ; Create the new object
+            fmalloc.malloc(heap, linkedlist_item.LINKED_LIST_ITEM_SIZEOF, pNew);        
+
+            ; Set it's data pointer
+            linkedlist_item.data_set(&pNew, data);
+
+            ; pNew->Next = ptr
+            ; pNew->Prev = ptr->Prev
+            ; ptr->Prev = pNew
+
         }
 
         ; Return the result        
@@ -194,6 +204,18 @@ linkedlist {
             add_last(heap, root, data, &pNew);
         }
         else {
+
+            ; Create the new object
+            fmalloc.malloc(heap, linkedlist_item.LINKED_LIST_ITEM_SIZEOF, pNew);        
+
+            ; Set it's data pointer
+            linkedlist_item.data_set(&pNew, data);
+
+            ; pNew->Prev = ptr
+            ; pNew->Next = ptr->Next
+            ; ptr->Next = pNew
+
+            ; if ptr == pTail then pTail = pNew
 
         }
 

@@ -1,14 +1,19 @@
 %import textio
 %import string
 %import fmalloc
+%import pmalloc
 %import linkedlist
 %option no_sysinit
 %zeropage basicsafe
 
 main {
 
-    ; Pointer to the Stack Manager         
+    ; Far Heap
     ubyte[fmalloc_root.SIZEOF_FMALLOC] fpm;  
+
+    ; Near Heap
+    uword heap = memory("heap", 8192, 0);
+    ubyte[pmalloc.SIZEOF_PMALLOC] pm    
     
     sub start() {
                 
@@ -18,11 +23,18 @@ main {
         ;fptr_compare_test(); 
 
         ; Test fptr.equal
-        ;fptr_equal_test()                                
+        ;fptr_equal_test()  
 
-        ; Test Linked List
-        fmalloc_init();
-        linkedlist_test();
+        ; Test malloc
+        malloc_init();
+        malloc_test();
+        
+        ; Test fmalloc    
+        fmalloc_init();                          
+        fmalloc_test();
+
+        ; Test Linked List        
+        ;linkedlist_test();
         
     }
 
@@ -145,6 +157,39 @@ main {
 
     sub malloc_test()
     {
+        uword ptr1;
+        uword ptr2;
+        uword ptr3;
+
+        ptr1 = pmalloc.malloc(&pm, 32);
+        dump_ptr("\nptr1:", ptr1);
+
+        ptr2 = pmalloc.malloc(&pm, 32);
+        dump_ptr("\nptr2:", ptr2);
+
+        ptr3 = pmalloc.malloc(&pm, 32);
+        dump_ptr("\nptr3:", ptr3);
+
+        pmalloc.free(&pm, ptr1);
+        pmalloc.free(&pm, ptr3);
+
+        ptr3 = pmalloc.malloc(&pm, 32);
+        dump_ptr("\nptr3:", ptr3);
+        
+        pmalloc.free(&pm, ptr3);
+
+        ptr3 = pmalloc.malloc(&pm, 64);
+        dump_ptr("\nptr3:", ptr3);
+
+        ptr1 = pmalloc.malloc(&pm, 32);
+        dump_ptr("\nptr1:", ptr1);
+                        
+        txt.print("\n");
+
+    }
+
+    sub fmalloc_test()
+    {
 
     }
 
@@ -170,7 +215,7 @@ main {
 
         txt.clear_screen();
 
-        uword i;
+        uword @zp i;
         for i in 1 to $80 {   
 
             ; Build the string
@@ -283,6 +328,16 @@ main {
         }      
 
     }
+
+    sub malloc_init() {
+
+        ; Clear the heap
+        pmalloc.init(&pm);                           
+
+        ; Add heap
+        pmalloc.addblock(&pm, heap, 8192);               
+
+    }
        
     sub dump_fptr(str prompt, ubyte[fptr.SIZEOF_FPTR] fptr)
     {        
@@ -294,5 +349,12 @@ main {
         txt.print(conv.string_out);
         conv.str_ubhex(fptr[1])
         txt.print(conv.string_out);                
+    }
+
+    sub dump_ptr(str prompt, uword ptr)
+    {        
+        txt.print(prompt);
+        conv.str_uwhex(ptr)                       
+        txt.print(conv.string_out);        
     }
 }
