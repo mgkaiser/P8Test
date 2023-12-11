@@ -1,6 +1,6 @@
 fstruct {
 
-    inline asmsub set_zfp(uword pointer @R0, ubyte offset @R2) {
+    asmsub set_zfp(uword pointer @R0, ubyte offset @R2) {
     %asm{{
       
     ; Set Bank and extract pointer
@@ -24,7 +24,7 @@ fstruct {
     }}
     }
 
-    inline asmsub set(uword pointer @R0, ubyte offset @R2, ubyte count @X, uword valuePointer @R1) {
+    asmsub set(uword pointer @R0, ubyte offset @R2, ubyte count @X, uword valuePointer @R1) {
     %asm {{
     ; Set Bank and extract pointer
     ldy #$00
@@ -49,7 +49,7 @@ fstruct {
     }}
     }
 
-    inline asmsub get(uword pointer @R0, ubyte offset @R2, ubyte count @X, uword valuePointer @R1) {
+    asmsub get(uword pointer @R0, ubyte offset @R2, ubyte count @X, uword valuePointer @R1) {
     %asm {{     
     ; Set Bank and extract pointer
     ldy #$00
@@ -74,7 +74,7 @@ fstruct {
     }}        
     }  
         
-    inline asmsub set_w(uword fptr @R0, ubyte offset @Y, uword valuePointer @R1) {
+    asmsub set_w(uword fptr @R0, ubyte offset @Y, uword valuePointer @R1) {
     %asm {{ 
     phy
     
@@ -104,7 +104,7 @@ fstruct {
     }}
     }
 
-    inline asmsub set_wi(uword fptr @R0, ubyte offset @Y, uword valuePointer @R1) {
+    asmsub set_wi(uword fptr @R0, ubyte offset @Y, uword valuePointer @R1) {
     %asm {{ 
     
     phy  
@@ -131,7 +131,7 @@ fstruct {
     }}
     }
 
-    inline asmsub get_w(uword fptr @R0, ubyte offset @Y, uword valuePointer @R1) {
+    asmsub get_w(uword fptr @R0, ubyte offset @Y, uword valuePointer @R1) {
     %asm {{
 
     phy
@@ -287,32 +287,32 @@ fptr {
     }}
     }
 
-    inline asmsub set(uword fptr @R0, uword valuePointer @R1) clobbers (Y) {
+    asmsub set(uword fptr @R0, uword valuePointer @R1) clobbers (Y) {
     %asm {{     
     ; Set Bank and extract pointer
     ldy #$00
-    lda (cx16.r0),y
+    lda(cx16.r0),y
     sta $00       
     iny
-    lda (cx16.r0),y
+    lda(cx16.r0),y
     sta cx16.r2L
     iny
-    lda (cx16.r0),y
+    lda(cx16.r0),y
     sta cx16.r2H    
                             
     ldy #$00
-    lda (cx16.r1),Y   
-    sta (cx16.r2),Y    
+    lda(cx16.r1),y  
+    sta(cx16.r2),y    
     iny    
-    lda (cx16.r1),Y    
-    sta (cx16.r2),Y
+    lda(cx16.r1),y    
+    sta(cx16.r2),y
     iny    
-    lda (cx16.r1),Y    
-    sta (cx16.r2),Y
+    lda(cx16.r1),y    
+    sta(cx16.r2),y
     }}
     }    
 
-    inline asmsub get(uword fptr @R0, uword valuePointer @R1) clobbers (Y) {
+    asmsub get(uword fptr @R0, uword valuePointer @R1) clobbers (Y) {
     %asm {{     
     ; Set Bank and extract pointer
     ldy #$00
@@ -337,7 +337,7 @@ fptr {
     }}        
     }   
 
-    inline asmsub memcopy_in(uword fptr @R0, uword valuePointer @R1, ubyte count @X) clobbers (Y) {
+    asmsub memcopy_in(uword fptr @R0, uword valuePointer @R1, ubyte count @X) clobbers (Y) {
     %asm {{     
     ; Set Bank and extract pointer
     ldy #$00
@@ -361,7 +361,7 @@ fptr {
     }}
     }   
 
-    inline asmsub memcopy_out(uword fptr @R0, uword valuePointer @R1, ubyte count @X) clobbers (Y) {
+    asmsub memcopy_out(uword fptr @R0, uword valuePointer @R1, ubyte count @X) clobbers (Y) {
     %asm {{     
     ; Set Bank and extract pointer
     ldy #$00

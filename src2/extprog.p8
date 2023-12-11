@@ -1,5 +1,6 @@
 %import textio_h
 %import struct_h
+%import fstruct_h
 %launcher none
 %option no_sysinit
 %zeropage dontuse

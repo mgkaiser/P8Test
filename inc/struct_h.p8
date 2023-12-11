@@ -7,6 +7,6 @@ struct {
 }
 
 ptr {
-    romsub $0410 = set_w(uword pointer @R0, uword valuePointer @R1) clobbers (X)
-    romsub $0413 = get_w(uword pointer @R0, uword valuePointer @R1)
+    romsub $040f = set_w(uword pointer @R0, uword valuePointer @R1) clobbers (X)
+    romsub $0412 = get_w(uword pointer @R0, uword valuePointer @R1)
 }

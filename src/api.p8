@@ -24,17 +24,25 @@ api {
         address = registerjumpitem(address, &struct.set_wi) 
         address = registerjumpitem(address, &struct.get_w)     
 
-        ; Register methods from "ptr"        
-        address = $0410
+        ; Register methods from "ptr"                
         address = registerjumpitem(address, &ptr.set_w) 
         address = registerjumpitem(address, &ptr.get_w)   
 
-        ; Register methods from "fstruct"              
+        ; Register methods from "fstruct"   --> Make sure these restore the previous bank when done             
         address = $0420
+        address = registerjumpitem(address, &fstruct.set_zfp) 
+        address = registerjumpitem(address, &fstruct.set) 
+        address = registerjumpitem(address, &fstruct.get) 
+        address = registerjumpitem(address, &fstruct.set_w) 
+        address = registerjumpitem(address, &fstruct.set_wi) 
+        address = registerjumpitem(address, &fstruct.get_w) 
 
-        ; Register methods from "fptr"              
-        address = $0430
-
+        ; Register methods from "fptr"      --> Make sure these restore the previous bank when done            
+        address = registerjumpitem(address, &fptr.set) 
+        address = registerjumpitem(address, &fptr.get) 
+        address = registerjumpitem(address, &fptr.memcopy_in) 
+        address = registerjumpitem(address, &fptr.memcopy_out) 
+        
         ; Register methods from "pmalloc"              
         address = $0440
 
