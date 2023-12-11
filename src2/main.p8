@@ -1,3 +1,4 @@
+%import api
 %import textio
 %import string
 %import fmalloc
@@ -18,6 +19,7 @@ main {
     sub start() {
                 
         txt.print("p8test\n"); 
+        api.registerjumptable();
 
         ; Test fptr.compare
         ;fptr_compare_test(); 
@@ -34,7 +36,7 @@ main {
         fmalloc_test();
 
         ; Test Linked List        
-        ;linkedlist_test();
+        linkedlist_test();
         
     }
 
@@ -183,6 +185,7 @@ main {
 
         ptr1 = pmalloc.malloc(&pm, 32);
         dump_ptr("\nptr1:", ptr1);
+        
                         
         txt.print("\n");
 
@@ -190,8 +193,19 @@ main {
 
     sub fmalloc_test()
     {
+        ubyte[fptr.SIZEOF_FPTR] ptr1;
+        ubyte[fptr.SIZEOF_FPTR] ptr2;
 
-    }
+        fmalloc.malloc(&fpm, 8184, ptr1) 
+        dump_fptr("\nptr1: ", ptr1);             
+        txt.print("\n");                 
+
+        fmalloc.malloc(&fpm, 8184, ptr2) 
+        dump_fptr("\nptr1: ", ptr2);             
+        txt.print("\n");                         
+
+        api.launch("extprog.prg", ptr1[0], 0, 0);
+    }    
 
     sub struct_test()
     {
@@ -357,4 +371,5 @@ main {
         conv.str_uwhex(ptr)                       
         txt.print(conv.string_out);        
     }
+    
 }

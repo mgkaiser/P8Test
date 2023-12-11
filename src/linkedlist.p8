@@ -158,71 +158,25 @@ linkedlist {
         result[1] = pNew[1];
         result[2] = pNew[2];
 
-    }
+    }    
 
-    sub add_before(uword heap, ubyte[fptr.SIZEOF_FPTR] ptr, uword root, uword data, ubyte[fptr.SIZEOF_FPTR] result) {
-
-        ubyte[fptr.SIZEOF_FPTR] pNew;        
-        ubyte[fptr.SIZEOF_FPTR] pHead;
-        ubyte[fptr.SIZEOF_FPTR] pTail;
-        
-        ;  If the thing you're adding before is the head just call add first
-        linkedlist_root.head_get(root, &pHead);        
-        if (fptr.isnull(&pHead)) or (fptr.equal(&ptr, &pHead)) {
-            add_first(heap, root, data, &pNew);
-        }
-        else {
-
-            ; Create the new object
-            fmalloc.malloc(heap, linkedlist_item.LINKED_LIST_ITEM_SIZEOF, pNew);        
-
-            ; Set it's data pointer
-            linkedlist_item.data_set(&pNew, data);
-
-            ; pNew->Next = ptr
-            ; pNew->Prev = ptr->Prev
-            ; ptr->Prev = pNew
-
-        }
-
-        ; Return the result        
-        result[0] = pNew[0];
-        result[1] = pNew[1];
-        result[2] = pNew[2];
+    sub remove(ubyte[3] root, ubyte[3] ptr) {
         
     }
 
-    sub add_after(uword heap, ubyte[fptr.SIZEOF_FPTR] ptr, uword root, uword data, ubyte[fptr.SIZEOF_FPTR] result) {
+    sub moveup(ubyte[3] root, ubyte[3] ptr) {
 
-        ubyte[fptr.SIZEOF_FPTR] pNew;        
-        ubyte[fptr.SIZEOF_FPTR] pHead;
-        ubyte[fptr.SIZEOF_FPTR] pTail;
-        
-        ;  If the thing you're adding after is the tail just call add last
-        linkedlist_root.head_get(root, &pTail);        
-        if (fptr.isnull(&pTail)) or (fptr.equal(&ptr, &pTail)) {
-            add_last(heap, root, data, &pNew);
-        }
-        else {
+    }
 
-            ; Create the new object
-            fmalloc.malloc(heap, linkedlist_item.LINKED_LIST_ITEM_SIZEOF, pNew);        
+    sub movedown(ubyte[3] root, ubyte[3] ptr) {
 
-            ; Set it's data pointer
-            linkedlist_item.data_set(&pNew, data);
+    }
 
-            ; pNew->Prev = ptr
-            ; pNew->Next = ptr->Next
-            ; ptr->Next = pNew
+    sub movetop(ubyte[3] root, ubyte[3] ptr) {
 
-            ; if ptr == pTail then pTail = pNew
+    }
 
-        }
-
-        ; Return the result        
-        result[0] = pNew[0];
-        result[1] = pNew[1];
-        result[2] = pNew[2];
+    sub movebottom(ubyte[3] root, ubyte[3] ptr) {
 
     }
 

@@ -1,2 +1,4 @@
-java -jar c:\prog8\prog8compiler-9.5-all.jar -sourcelines -target cx16  %1
+java -jar c:\prog8\prog8compiler-9.5-all.jar -sourcelines -target cx16 -srcdirs src;src2;inc main.p8
+java -jar c:\prog8\prog8compiler-9.5-all.jar -sourcelines -target cx16 -srcdirs src;src2;inc extprog.p8
 copy main.prg C:\x16-Drive\drive\p8test.prg
+copy extprog.prg C:\x16-Drive\drive\extprog.prg

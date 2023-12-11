@@ -1,6 +1,6 @@
 struct {
 
-    inline asmsub set(uword pointer @R0, ubyte offset @R2, ubyte count @X, uword valuePointer @R1) {
+    asmsub set(uword pointer @R0, ubyte offset @R2, ubyte count @X, uword valuePointer @R1) {
     %asm {{           
     - 
     ldy cx16.r2H
@@ -14,7 +14,7 @@ struct {
     }}
     }
 
-    inline asmsub get(uword pointer @R0, ubyte offset @R2, ubyte count @X, uword valuePointer @R1) {
+    asmsub get(uword pointer @R0, ubyte offset @R2, ubyte count @X, uword valuePointer @R1) {
     %asm {{         
     - 
     ldy cx16.r2L
@@ -29,7 +29,7 @@ struct {
     }    
 
 
-    inline asmsub set_w(uword pointer @R0, ubyte offset @Y, uword valuePointer @R1) {
+    asmsub set_w(uword pointer @R0, ubyte offset @Y, uword valuePointer @R1) {
     %asm {{   
     phy 
     ldy #$00
@@ -45,7 +45,7 @@ struct {
     }}
     }
 
-    inline asmsub set_wi(uword pointer @R0, ubyte offset @Y, uword value @R1) {
+    asmsub set_wi(uword pointer @R0, ubyte offset @Y, uword value @R1) {
     %asm {{   
     lda cx16.r1
     sta(cx16.r0),y
@@ -55,7 +55,7 @@ struct {
     }}
     }    
 
-    inline asmsub get_w(uword pointer @R0, ubyte offset @Y, uword valuePointer @R1) {
+    asmsub get_w(uword pointer @R0, ubyte offset @Y, uword valuePointer @R1) {
     %asm {{                    
     lda(cx16.r0),y        
     phy
@@ -74,7 +74,7 @@ ptr {
 
     const uword NULL = $0000;
 
-    inline asmsub set_w(uword pointer @R0, uword valuePointer @R1) clobbers (X) {
+    asmsub set_w(uword pointer @R0, uword valuePointer @R1) clobbers (X) {
     %asm {{       
     ldy #$00
     lda(cx16.r1),y    
@@ -85,7 +85,7 @@ ptr {
     }}
     }    
 
-    inline asmsub get_w(uword pointer @R0, uword valuePointer @R1) {
+    asmsub get_w(uword pointer @R0, uword valuePointer @R1) {
     %asm {{                    
     ldy #$00
     lda(cx16.r0),y                
