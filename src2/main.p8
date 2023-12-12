@@ -19,7 +19,14 @@ main {
     sub start() {
                 
         txt.print("p8test\n"); 
-        api.registerjumptable();
+
+        ; Init stuff        
+        fmalloc_init();                          
+        malloc_init();
+        api.init();
+
+        ; Test Task
+        task_test();
 
         ; Test fptr.compare
         ;fptr_compare_test(); 
@@ -27,17 +34,20 @@ main {
         ; Test fptr.equal
         ;fptr_equal_test()  
 
-        ; Test malloc
-        malloc_init();
-        malloc_test();
+        ; Test malloc        
+        ;malloc_test();
         
-        ; Test fmalloc    
-        fmalloc_init();                          
-        fmalloc_test();
+        ; Test fmalloc            
+        ;fmalloc_test();
 
         ; Test Linked List        
-        linkedlist_test();
+        ;linkedlist_test();
         
+    }
+
+    sub task_test() {
+        ubyte[fptr.SIZEOF_FPTR] ptr1;
+        api.init_task("extprog.prg", 0, 0, &ptr1);
     }
 
     sub fptr_equal_test() {
@@ -202,9 +212,7 @@ main {
 
         fmalloc.malloc(&fpm, 8184, ptr2) 
         dump_fptr("\nptr1: ", ptr2);             
-        txt.print("\n");                         
-
-        api.launch("extprog.prg", ptr1[0], 0, 0);
+        txt.print("\n");                                 
     }    
 
     sub struct_test()
@@ -356,20 +364,16 @@ main {
     sub dump_fptr(str prompt, ubyte[fptr.SIZEOF_FPTR] fptr)
     {        
         txt.print(prompt);
-        conv.str_ubhex(fptr[0])
-        txt.print(conv.string_out);        
+        txt.print_ubhex(fptr[0], false)        
         txt.print(":");        
-        conv.str_ubhex(fptr[2])
-        txt.print(conv.string_out);
-        conv.str_ubhex(fptr[1])
-        txt.print(conv.string_out);                
+        txt.print_ubhex(fptr[2], false)        
+        txt.print_ubhex(fptr[1], false)                
     }
 
     sub dump_ptr(str prompt, uword ptr)
     {        
         txt.print(prompt);
-        conv.str_uwhex(ptr)                       
-        txt.print(conv.string_out);        
+        txt.print_uwhex(ptr, false)                                      
     }
     
 }

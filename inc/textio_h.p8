@@ -1,3 +1,7 @@
-txt {
-    romsub $07e0 = print(str string @AY) clobbers(A,Y)    
+txt {    
+    romsub $07e0 = print(str string @AY) clobbers(A,Y)   
+    romsub $07e3 = print_uw(uword value @AY) clobbers(A,Y)
+    romsub $07e6 = print_uwhex(uword value @AY, bool prefix @Pc) clobbers(A,Y) 
+    romsub $07e9 = print_ub  (ubyte value @ A) clobbers(A,X,Y)
+    romsub $07ec = print_ubhex  (ubyte value @ A, bool prefix @ Pc) clobbers(A,X,Y)        
 }
