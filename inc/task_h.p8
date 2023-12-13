@@ -1,13 +1,14 @@
 task {
-    const ubyte TASK_SIZEOF         = $14;    
-    const ubyte TASK_TASKIMAGE      = $00;
-    const ubyte TASK_TITLE          = $03;
-    const ubyte TASK_STATE          = $06;
-    const ubyte TASK_X              = $09;
-    const ubyte TASK_Y              = $0b;
-    const ubyte TASK_H              = $0d;
-    const ubyte TASK_W              = $0f;
-    const ubyte TASK_FILENAME       = $11;
+    const ubyte TASK_SIZEOF         = $15;    
+    const ubyte TASK_TASKIMAGE      = $00; 3 - fptr
+    const ubyte TASK_TITLE          = $03; 3 - fptr
+    const ubyte TASK_STATE          = $06; 3 - fptr
+    const ubyte TASK_X              = $09; 2 - uword
+    const ubyte TASK_Y              = $0b; 2 - uword
+    const ubyte TASK_H              = $0d; 2 - uword
+    const ubyte TASK_W              = $0f; 2 - uword
+    const ubyte TASK_FILENAME       = $11; 3 - fptr
+    const ubyte TASK_DONE           = $14; 2 - uword
     
     sub taskimage_get(ubyte[3] ptr, uword result) {        
         fstruct.get(ptr, TASK_TASKIMAGE, fptr.SIZEOF_FPTR, result);
@@ -87,6 +88,18 @@ task {
 
     sub filename_set(ubyte[3] ptr, uword value) {
         fstruct.set(ptr, TASK_FILENAME, fptr.SIZEOF_FPTR, value);
+    }   
+
+    sub done_get(ubyte[3] ptr, uword result) {        
+        fstruct.get_w(ptr, TASK_DONE, result);
+    }
+
+    sub done_set(ubyte[3] ptr, uword value) {
+        fstruct.set_w(ptr, TASK_DONE, value);
+    }
+    
+    sub done_set_wi(ubyte[3] ptr, uword value) {
+        fstruct.set_wi(ptr, TASK_DONE, value);
     }       
 }
 

@@ -34,14 +34,19 @@ fstruct {
 
     asmsub set(uword pointer @R0, ubyte offset @R2, ubyte count @X, uword valuePointer @R1) {
     %asm {{
+        ; r4H = Bank of the struct
+        ; r4L = Bank of the valuePointer 
+        ; r3  = Pointer to the struct
+        ; r1  = Pointer to the valuePointer
+
         ; Remember the bank
         lda $00 
-        pha
+        sta cx16.r4L
         
         ; Set Bank and extract pointer
         ldy #$00
         lda (cx16.r0),y
-        sta $00       
+        sta cx16.r4H  
         iny
         lda (cx16.r0),y
         sta cx16.r3L
@@ -49,33 +54,47 @@ fstruct {
         lda (cx16.r0),y
         sta cx16.r3H            
         
-        ; Move the bytes from @R1 to @R3
+        ; Move the bytes from @R1 - valuePointer
         - 
+        lda cx16.r4L
+        sta $00
         ldy cx16.r2H
         lda(cx16.r1),y
+
+        ; Move the bytes to @R3 - struct
+        pha
+        lda cx16.r4H        
+        sta $00
+        pla
         ldy cx16.r2L
         sta(cx16.r3),y    
+
         inc cx16.r2L
         inc cx16.r2H
         dex
         bne -
 
         ; Restore the bank
-        pla
+        lda cx16.r4L
         sta $00
     }}
     }
 
     asmsub get(uword pointer @R0, ubyte offset @R2, ubyte count @X, uword valuePointer @R1) {
     %asm {{ 
+        ; r4H = Bank of the struct
+        ; r4L = Bank of the valuePointer 
+        ; r3  = Pointer to the struct
+        ; r1  = Pointer to the valuePointer
+
         ; Remember the bank
         lda $00 
-        pha
+        sta cx16.r4L
 
         ; Set Bank and extract pointer
         ldy #$00
         lda (cx16.r0),y
-        sta $00       
+        sta cx16.r4H    
         iny
         lda (cx16.r0),y
         sta cx16.r3L
@@ -83,28 +102,42 @@ fstruct {
         lda (cx16.r0),y
         sta cx16.r3H      
         
-        ; Move the bytes from @R3 to @R1
+        ; Move the bytes from @R3 - struct
         - 
+        lda cx16.r4H
+        sta $00
         ldy cx16.r2L
         lda(cx16.r3),y
+
+        ; Move the bytes R1 - valuePointer
+        pha
+        lda cx16.r4L
+        sta $00
+        pla
         ldy cx16.r2H
         sta(cx16.r1),y    
+
         inc cx16.r2L
         inc cx16.r2H
         dex
         bne -
 
         ; Restore the bank
-        pla
+        lda cx16.r4L
         sta $00
     }}        
     }  
         
     asmsub set_w(uword fptr @R0, ubyte offset @Y, uword valuePointer @R1) {
     %asm {{ 
+        ; r4H = Bank of the struct
+        ; r4L = Bank of the valuePointer 
+        ; r3  = Pointer to the struct
+        ; r1  = Pointer to the valuePointer
+
         ; Remember the bank
         lda $00 
-        pha
+        sta cx16.r4L
 
         ; Remember the @Y param for later
         phy
@@ -112,7 +145,7 @@ fstruct {
         ; Set Bank and extract pointer
         ldy #$00
         lda (cx16.r0),y
-        sta $00       
+        sta cx16.r4H         
         iny
         lda (cx16.r0),y
         sta cx16.r2L
@@ -121,19 +154,34 @@ fstruct {
         sta cx16.r2H  
 
         ; @R2->Y = *@R1 
-        ldy #$00
+        lda cx16.r4L
+        sta $00
+        ldy #$00        
         lda(cx16.r1),y
+
+        pha
+        lda cx16.r4H
+        sta $00
+        pla
         ply
         sta(cx16.r2),y    
+
+        lda cx16.r4L
+        sta $00
         iny
         phy
         ldy #$01    
         lda(cx16.r1),y
+
+        pha
+        lda cx16.r4H
+        sta $00
+        pla
         ply
         sta(cx16.r2),y
 
         ; Restore the bank
-        pla
+        lda cx16.r4L
         sta $00
     
     }}
@@ -141,9 +189,14 @@ fstruct {
 
     asmsub set_wi(uword fptr @R0, ubyte offset @Y, uword valuePointer @R1) {
     %asm {{ 
+        ; r4H = Bank of the struct
+        ; r4L = Bank of the valuePointer 
+        ; r3  = Pointer to the struct
+        ; r1  = Pointer to the valuePointer
+
         ; Remember the bank
         lda $00 
-        pha
+        sta cx16.r4L
     
         ; Remember the @Y param for later
         phy  
@@ -151,7 +204,7 @@ fstruct {
         ; Set Bank and extract pointer
         ldy #$00
         lda (cx16.r0),y
-        sta $00       
+        sta cx16.r4H         
         iny
         lda (cx16.r0),y
         sta cx16.r2L
@@ -160,15 +213,28 @@ fstruct {
         sta cx16.r2H  
 
         ; @R2->Y = @R1
+        lda cx16.r4L
+        sta $00
         ply    
         lda cx16.r1
-        sta(cx16.r2),y
+        pha
+        lda cx16.r4H
+        sta $00
+        pla        
+        sta(cx16.r2),y        
+        
+        lda cx16.r4L
+        sta $00
         iny
-        lda cx16.r1 + 1
+        lda cx16.r1 + 1                
+        pha
+        lda cx16.r4H
+        sta $00
+        pla
         sta(cx16.r2),y
 
         ; Restore the bank
-        pla
+        lda cx16.r4L
         sta $00
     
     }}
@@ -176,9 +242,14 @@ fstruct {
 
     asmsub get_w(uword fptr @R0, ubyte offset @Y, uword valuePointer @R1) {
     %asm {{
+        ; r4H = Bank of the struct
+        ; r4L = Bank of the valuePointer 
+        ; r3  = Pointer to the struct
+        ; r1  = Pointer to the valuePointer
+
         ; Remember the bank
         lda $00 
-        pha
+        sta cx16.r4L
 
         ; Remember @Y parameter for later
         phy
@@ -186,7 +257,7 @@ fstruct {
         ; Set Bank and extract pointer
         ldy #$00
         lda (cx16.r0),y
-        sta $00       
+        sta cx16.r4H  
         iny
         lda (cx16.r0),y
         sta cx16.r2L
@@ -194,19 +265,33 @@ fstruct {
         lda (cx16.r0),y
         sta cx16.r2H 
 
+        lda cx16.r4H
+        sta $00
         ply
         lda (cx16.r2),y 
         iny
         phy
+        pha
+        lda cx16.r4L
+        sta $00
+        pla
         ldy #$00
         sta (cx16.r1),y
+
+        lda cx16.r4H
+        sta $00
         ply
         lda (cx16.r2),y 
+        pha
+        lda cx16.r4L
+        sta $00
+        pla
         ldy #$01
         sta (cx16.r1),y   
         
         ; Restore the bank
-        pla
+        ; Restore the bank
+        lda cx16.r4L
         sta $00
     
     }}        
@@ -338,6 +423,7 @@ fptr {
     }}
     }
 
+    ; Needs bank work
     asmsub set(uword fptr @R0, uword valuePointer @R1) clobbers (Y) {
     %asm {{  
         ; Remember the bank
@@ -371,6 +457,7 @@ fptr {
     }}
     }    
 
+    ; Needs bank work
     asmsub get(uword fptr @R0, uword valuePointer @R1) clobbers (Y) {
     %asm {{     
         ; Remember the bank
@@ -404,6 +491,7 @@ fptr {
     }}        
     }   
 
+    ; Needs bank work
     asmsub memcopy_in(uword fptr @R0, uword valuePointer @R1, ubyte count @X) clobbers (Y) {
     %asm {{    
         ; Remember the bank
@@ -436,6 +524,7 @@ fptr {
     }}
     }   
 
+    ; Needs bank work
     asmsub memcopy_out(uword fptr @R0, uword valuePointer @R1, ubyte count @X) clobbers (Y) {
     %asm {{
         ; Remember the bank

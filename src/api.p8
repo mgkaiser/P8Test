@@ -77,12 +77,33 @@ api {
     ; If you try to load the same file again, just create a new task, and let the existing instance create a new state
     sub init_task(str filename, uword param1, uword param2, ubyte[fptr.SIZEOF_FPTR] pTask) -> bool {
 
+        ubyte[fptr.SIZEOF_FPTR] pTaskData;
         ubyte[fptr.SIZEOF_FPTR] pTaskImage;
+        ubyte[fptr.SIZEOF_FPTR] pFileName;
 
-        ; Space for the task
+        ; Allocate space for the tast
         fmalloc.malloc(&main.fpm, 8184, pTaskImage) 
 
+        ; Allocate and set the filename
+        fmalloc.malloc(&main.fpm, string.length(filename) + 1, pFileName)             
+        fptr.memcopy_in(&pFileName, filename, string.length(filename) + 1);
+
+        ; Create the Task
+        fmalloc.malloc(&main.fpm, task.TASK_SIZEOF, pTaskData)         
+        task.done_set_wi(pTaskData, 0)                
+        task.taskimage_set(pTaskData, &pTaskImage);                
+        task.filename_set(pTaskData, &pFileName)
+        
         ; Insert it into task list as pTask
+        linkedlist.add_last(&main.fpm, pTaskList, &pTaskData, pTask);  
+
+        ;txt.print("\ninit_task")
+        ;main.dump_fptr("\nptaskdata: ", pTaskData);
+        ;main.dump_fptr("\nptaskimage: ", pTaskImage);
+        ;main.dump_fptr("\nfilename: ", pFileName);        
+        ;main.dump_fptr("\nptask: ", pTask);
+        ;txt.print("\n")
+        ;txt.print("\n")
 
         ; Switch to bank of image
         cx16.rambank(pTaskImage[0]) ;
@@ -104,24 +125,46 @@ api {
         return result != 0
     }
 
-    sub run_task(ubyte[fptr.SIZEOF_FPTR] pTask, uword param1, uword param2) {
+    sub run_task(ubyte[fptr.SIZEOF_FPTR] pTask, uword param1, uword param2) -> bool {
 
         ubyte[fptr.SIZEOF_FPTR] pTaskImage;
+        ubyte[fptr.SIZEOF_FPTR] pTaskData;
+        uword done;
 
-        ; Extract pTaskImage from pTask
+        ; Extract pTaskImage from pTask                                
+        linkedlist_item.data_get(pTask, &pTaskData)     
+        task.taskimage_get(pTaskData, &pTaskImage)    
+
+        ;txt.print("\nrun_task")
+        ;main.dump_fptr("\nptaskdata: ", pTaskData);
+        ;main.dump_fptr("\nptaskimage: ", pTaskImage);
+        ;main.dump_fptr("\nptask: ", pTask);
+        ;txt.print("\n")
+        ;txt.print("\n")     
         
+        ; Switch to bank of image
+        cx16.rambank(pTaskImage[0]) ;
 
         ; Run the run method
         run(pTaskImage[0], API_RUN, param1, param2, pTask)  
+        
+        ; Is it done?
+        task.done_get(pTaskData, &done)
+        return done != 0;
     }
 
     sub done_task(ubyte[fptr.SIZEOF_FPTR] pTask, uword param1, uword param2) {
 
         ubyte[fptr.SIZEOF_FPTR] pTaskImage;
+        ubyte[fptr.SIZEOF_FPTR] pTaskData;
 
         ; Extract pTaskImage from pTask
-        
+        linkedlist_item.data_get(pTask, &pTaskData)     
+        task.taskimage_get(pTaskData, &pTaskImage)     
 
+        ; Switch to bank of image
+        cx16.rambank(pTaskImage[0]) ;
+        
         ; Run the done method
         run(pTaskImage[0], API_DONE, param1, param2, pTask)  
 

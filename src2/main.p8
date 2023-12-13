@@ -46,8 +46,32 @@ main {
     }
 
     sub task_test() {
-        ubyte[fptr.SIZEOF_FPTR] ptr1;
-        api.init_task("extprog.prg", 0, 0, &ptr1);
+        ubyte[fptr.SIZEOF_FPTR] pTask;
+        ubyte[fptr.SIZEOF_FPTR] pTaskData;                
+
+        api.init_task("extprog.prg", 0, 0, &pTask);  
+        main.dump_fptr("\nptask: ", pTask);
+        txt.print("\n")
+
+        api.init_task("extprog2.prg", 0, 0, &pTask);   
+        main.dump_fptr("\nptask: ", pTask);
+        txt.print("\n")
+        txt.print("\n")
+
+        while true {
+            linkedlist.last(&api.pTaskList, pTask);
+            while fptr.isnull(&pTask) != true {                
+
+
+                if api.run_task(pTask, 0, 0) {
+                    api.done_task(pTask, 0, 0)        
+                }
+                
+                ; Next item
+                linkedlist.prev(pTask, pTask);
+
+            }
+        }
     }
 
     sub fptr_equal_test() {

@@ -51,7 +51,7 @@ main $A008 {
 
         ; Create state
         fmalloc.malloc(state.STATE_SIZEOF, &pState);
-        state.counter_set_wi(pState, 0);
+        state.counter_set_wi(pState, 1000);
 
         ; Attach it to the task
         task.state_set(pTaskData, &pState)        
@@ -76,7 +76,7 @@ main $A008 {
 
         ; Increment Counter
         state.counter_get(pState, &counter)
-        counter = counter + 1
+        counter = counter - 1
         state.counter_set(pState, &counter)        
 
         txt.print_uw(counter)
