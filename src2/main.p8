@@ -62,11 +62,9 @@ main {
             linkedlist.last(&api.pTaskList, pTask);
             while fptr.isnull(&pTask) != true {                
 
-
-                if api.run_task(pTask, 0, 0) {
-                    api.done_task(pTask, 0, 0)        
-                }
-                
+                ; Run it
+                api.run_task(pTask, 0, 0)
+                                 
                 ; Next item
                 linkedlist.prev(pTask, pTask);
 

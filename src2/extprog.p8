@@ -79,8 +79,10 @@ main $A008 {
         counter = counter + 1
         state.counter_set(pState, &counter)        
 
+        txt.row(1)
+        txt.column(1)
         txt.print_uw(counter)
-        txt.print("\n  ")        
+              
 
     }
 

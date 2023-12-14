@@ -22,6 +22,10 @@ api {
         address = registerjumpitem(address, &txt.print_uwhex) 
         address = registerjumpitem(address, &txt.print_ub)     
         address = registerjumpitem(address, &txt.print_ubhex)                   
+        address = registerjumpitem(address, &txt.column)     
+        address = registerjumpitem(address, &txt.get_column)     
+        address = registerjumpitem(address, &txt.row)     
+        address = registerjumpitem(address, &txt.get_row)     
         
         ; Register methods from "struct"        
         address = $0400
@@ -69,7 +73,11 @@ api {
         poke(address, $4c)  
         pokew(address+1, ptr)
         return address + 3
-    }        
+    }    
+
+    sub findByFilename(str filename, ubyte[fptr.SIZEOF_FPTR] pTaskImage) -> bool {
+        return false
+    }    
 
     ; Launcher
     ;
@@ -81,8 +89,16 @@ api {
         ubyte[fptr.SIZEOF_FPTR] pTaskImage;
         ubyte[fptr.SIZEOF_FPTR] pFileName;
 
-        ; Allocate space for the tast
-        fmalloc.malloc(&main.fpm, 8184, pTaskImage) 
+        ; See if a task with the same file name already exists 
+        if findByFilename(filename, pTaskImage) {
+
+            ; Task already exists and pTaskImage contains it's pointer
+
+        } else {
+
+            ; Allocate space for the task
+            fmalloc.malloc(&main.fpm, 8184, pTaskImage) 
+        }
 
         ; Allocate and set the filename
         fmalloc.malloc(&main.fpm, string.length(filename) + 1, pFileName)             
@@ -95,20 +111,10 @@ api {
         task.filename_set(pTaskData, &pFileName)
         
         ; Insert it into task list as pTask
-        linkedlist.add_last(&main.fpm, pTaskList, &pTaskData, pTask);  
-
-        ;txt.print("\ninit_task")
-        ;main.dump_fptr("\nptaskdata: ", pTaskData);
-        ;main.dump_fptr("\nptaskimage: ", pTaskImage);
-        ;main.dump_fptr("\nfilename: ", pFileName);        
-        ;main.dump_fptr("\nptask: ", pTask);
-        ;txt.print("\n")
-        ;txt.print("\n")
-
-        ; Switch to bank of image
-        cx16.rambank(pTaskImage[0]) ;
-
+        linkedlist.add_last(&main.fpm, pTaskList, &pTaskData, pTask);          
+                
         ; Load Image from disk to pTaskImage[0]:a008
+        cx16.rambank(pTaskImage[0]) ;
         uword result = diskio.load(filename, $a008)
 
         ; If it loaded run it's init method
@@ -116,11 +122,11 @@ api {
             run(pTaskImage[0], API_INIT, param1, param2, pTask)                          
 
         ; Otherwise release it
-        } else {            
-            fmalloc.free(&main.fpm, pTask) 
-            pTask[0] = 0;
-            pTask[1] = 0;
-            pTask[2] = 0;
+        } else {
+                           
+            ; Free the task
+            freeTask(pTask);            
+                        
         }
         return result != 0
     }
@@ -133,17 +139,7 @@ api {
 
         ; Extract pTaskImage from pTask                                
         linkedlist_item.data_get(pTask, &pTaskData)     
-        task.taskimage_get(pTaskData, &pTaskImage)    
-
-        ;txt.print("\nrun_task")
-        ;main.dump_fptr("\nptaskdata: ", pTaskData);
-        ;main.dump_fptr("\nptaskimage: ", pTaskImage);
-        ;main.dump_fptr("\nptask: ", pTask);
-        ;txt.print("\n")
-        ;txt.print("\n")     
-        
-        ; Switch to bank of image
-        cx16.rambank(pTaskImage[0]) ;
+        task.taskimage_get(pTaskData, &pTaskImage)                            
 
         ; Run the run method
         run(pTaskImage[0], API_RUN, param1, param2, pTask)  
@@ -160,17 +156,25 @@ api {
 
         ; Extract pTaskImage from pTask
         linkedlist_item.data_get(pTask, &pTaskData)     
-        task.taskimage_get(pTaskData, &pTaskImage)     
-
-        ; Switch to bank of image
-        cx16.rambank(pTaskImage[0]) ;
+        task.taskimage_get(pTaskData, &pTaskImage)             
         
-        ; Run the done method
+        ; Run the done method - This should at least free the state, clean anything else up too.
         run(pTaskImage[0], API_DONE, param1, param2, pTask)  
 
-        ; Deallocate the task
-        
-        ; Deallocate the memory it's running in if it's the last instance
+        ; Free the task
+        freeTask(pTask);
+
+    }
+
+    sub freeTask(ubyte[fptr.SIZEOF_FPTR] pTask) {
+        ; If it's the last copy of this image, free pTaskImage
+        ; Free pFileName
+        ; Free pTaskData  
+        ; Remove pTask from list
+        ; Set pTask to null  
+        pTask[0] = 0;
+        pTask[1] = 0;
+        pTask[2] = 0;       
     }
 
     sub run (ubyte bank, uword command, uword param1, uword param2, uword pTask) {
@@ -195,5 +199,4 @@ api {
         fmalloc.free(&main.fpm, cx16.r0);
     }
     
-
 }
