@@ -1,37 +1,6 @@
 %import fstruct
 %import fmalloc
-
-linkedlist_item {
-    const ubyte LINKED_LIST_ITEM_SIZEOF         = $0a;    
-    const ubyte LINKED_LIST_ITEM_next           = $00; ubyte[fptr.SIZEOF_FPTR]    
-    const ubyte LINKED_LIST_ITEM_prev           = $03; ubyte[fptr.SIZEOF_FPTR]
-    const ubyte LINKED_LIST_ITEM_data           = $06; ubyte[fptr.SIZEOF_FPTR]
-    
-    sub next_get(ubyte[3] ptr, uword result) {        
-        fstruct.get(ptr, LINKED_LIST_ITEM_next, fptr.SIZEOF_FPTR, result);
-    }
-
-    sub next_set(ubyte[3] ptr, uword value) {
-        fstruct.set(ptr, LINKED_LIST_ITEM_next, fptr.SIZEOF_FPTR, value);
-    }
-
-    sub prev_get(ubyte[3] ptr, uword result) {        
-        fstruct.get(ptr, LINKED_LIST_ITEM_prev, fptr.SIZEOF_FPTR, result);
-    }
-
-    sub prev_set(ubyte[3] ptr, uword value) {
-        fstruct.set(ptr, LINKED_LIST_ITEM_prev, fptr.SIZEOF_FPTR, value);
-    }
-
-    sub data_get(ubyte[3] ptr, uword result) {     
-        fstruct.get(ptr, LINKED_LIST_ITEM_data, fptr.SIZEOF_FPTR, result);
-    }
-
-    sub data_set(ubyte[3] ptr, uword value) {
-        fstruct.set(ptr, LINKED_LIST_ITEM_data, fptr.SIZEOF_FPTR, value);
-    }
-
-}
+%import linkedlist_item_h
 
 linkedlist_root {
     const ubyte LINKED_LIST_ROOT_SIZEOF = 6;    
@@ -158,49 +127,25 @@ linkedlist {
         result[1] = pNew[1];
         result[2] = pNew[2];
 
-    }
+    }    
 
-    sub add_before(uword heap, ubyte[fptr.SIZEOF_FPTR] ptr, uword root, uword data, ubyte[fptr.SIZEOF_FPTR] result) {
-
-        ubyte[fptr.SIZEOF_FPTR] pNew;        
-        ubyte[fptr.SIZEOF_FPTR] pHead;
-        ubyte[fptr.SIZEOF_FPTR] pTail;
-        
-        ;  If the thing you're adding before is the head just call add first
-        linkedlist_root.head_get(root, &pHead);        
-        if (fptr.isnull(&pHead)) or (fptr.equal(&ptr, &pHead)) {
-            add_first(heap, root, data, &pNew);
-        }
-        else {
-
-        }
-
-        ; Return the result        
-        result[0] = pNew[0];
-        result[1] = pNew[1];
-        result[2] = pNew[2];
+    sub remove(ubyte[3] root, ubyte[3] ptr) {
         
     }
 
-    sub add_after(uword heap, ubyte[fptr.SIZEOF_FPTR] ptr, uword root, uword data, ubyte[fptr.SIZEOF_FPTR] result) {
+    sub moveup(ubyte[3] root, ubyte[3] ptr) {
 
-        ubyte[fptr.SIZEOF_FPTR] pNew;        
-        ubyte[fptr.SIZEOF_FPTR] pHead;
-        ubyte[fptr.SIZEOF_FPTR] pTail;
-        
-        ;  If the thing you're adding after is the tail just call add last
-        linkedlist_root.head_get(root, &pTail);        
-        if (fptr.isnull(&pTail)) or (fptr.equal(&ptr, &pTail)) {
-            add_last(heap, root, data, &pNew);
-        }
-        else {
+    }
 
-        }
+    sub movedown(ubyte[3] root, ubyte[3] ptr) {
 
-        ; Return the result        
-        result[0] = pNew[0];
-        result[1] = pNew[1];
-        result[2] = pNew[2];
+    }
+
+    sub movetop(ubyte[3] root, ubyte[3] ptr) {
+
+    }
+
+    sub movebottom(ubyte[3] root, ubyte[3] ptr) {
 
     }
 
