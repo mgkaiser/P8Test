@@ -17,6 +17,8 @@ main {
     ubyte[pmalloc.SIZEOF_PMALLOC] pm    
     
     sub start() {
+
+        txt.clear_screen()
                 
         txt.print("p8test\n"); 
 
@@ -46,30 +48,23 @@ main {
     }
 
     sub task_test() {
-        ubyte[fptr.SIZEOF_FPTR] pTask;
-        ubyte[fptr.SIZEOF_FPTR] pTaskData;                
+        ubyte[fptr.SIZEOF_FPTR] pTask;                     
 
-        api.init_task("extprog.prg", 0, 0, &pTask);  
-        main.dump_fptr("\nptask: ", pTask);
-        txt.print("\n")
+        void api.init_task("extprog2.prg", 1, 1, &pTask);          
+        void api.init_task("extprog2.prg", 10, 1, &pTask);          
+        void api.init_task("extprog2.prg", 1, 2, &pTask);           
+        void api.init_task("extprog2.prg", 10, 2, &pTask);           
+        void api.init_task("extprog2.prg", 1, 3, &pTask);           
+        void api.init_task("extprog2.prg", 10, 3, &pTask);  
+        void api.init_task("extprog.prg", 1, 4, &pTask);           
+        void api.init_task("extprog.prg", 10, 4, &pTask);  
+        void api.init_task("extprog.prg", 1, 5, &pTask);           
+        void api.init_task("extprog.prg", 10, 5, &pTask);  
+        void api.init_task("extprog.prg", 1, 6, &pTask);           
+        void api.init_task("extprog.prg", 10, 6, &pTask);         
 
-        api.init_task("extprog2.prg", 0, 0, &pTask);   
-        main.dump_fptr("\nptask: ", pTask);
-        txt.print("\n")
-        txt.print("\n")
-
-        while true {
-            linkedlist.last(&api.pTaskList, pTask);
-            while fptr.isnull(&pTask) != true {                
-
-                ; Run it
-                api.run_task(pTask, 0, 0)
-                                 
-                ; Next item
-                linkedlist.prev(pTask, pTask);
-
-            }
-        }
+        api.mainloop()  
+        
     }
 
     sub fptr_equal_test() {

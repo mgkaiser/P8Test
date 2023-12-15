@@ -69,13 +69,71 @@ api {
         
     }
 
+    sub mainloop() {
+        ubyte[fptr.SIZEOF_FPTR] pTask;
+        ubyte[fptr.SIZEOF_FPTR] pTaskData;   
+        
+        while true {
+
+            ; Render frame buffer in reverse order
+            linkedlist.last(&api.pTaskList, pTask);            
+            
+            while fptr.isnull(&pTask) != true {                
+
+                ; Render frame bufffer
+                
+                                 
+                ; Next item
+                linkedlist.prev(pTask, pTask);
+
+            }            
+
+            ; Run task in forward order
+            linkedlist.first(&api.pTaskList, pTask);
+            while fptr.isnull(&pTask) != true {                
+
+                ; Run it
+                api.run_task(pTask, 0, 0)
+                                 
+                ; Next item
+                linkedlist.next(pTask, pTask);
+
+            }
+        }
+    }
+
     sub registerjumpitem(uword address, uword ptr) -> uword {
         poke(address, $4c)  
         pokew(address+1, ptr)
         return address + 3
     }    
 
-    sub findByFilename(str filename, ubyte[fptr.SIZEOF_FPTR] pTaskImage) -> bool {
+    sub findByFilename(str filename, ubyte[fptr.SIZEOF_FPTR] pTaskImage) -> bool {        
+                
+        ubyte[fptr.SIZEOF_FPTR] pTaskData2;
+        ubyte[fptr.SIZEOF_FPTR] pFileName2;
+        ubyte[fptr.SIZEOF_FPTR] pTask2
+        str filename2 = "                 "
+        
+        linkedlist.first(&api.pTaskList, pTask2);
+        while fptr.isnull(&pTask2) != true {                
+
+            ; Get the task's filename: filename2 = *(pTask2->pTaskData2->pFileName2)
+            linkedlist_item.data_get(pTask2, &pTaskData2) 
+            task.filename_get(pTaskData2, &pFileName2)
+            fptr.memcopy_out(&pFileName2, filename2, string.length(filename2) - 1)
+
+            ; Does filename == filename2
+            if string.compare(filename, filename2) == 0 {
+                task.taskimage_get(pTaskData2, &pTaskImage)   
+                return true
+            }            
+                                
+            ; Next item
+            linkedlist.next(pTask2, pTask2);
+
+        }
+
         return false
     }    
 
@@ -98,37 +156,38 @@ api {
 
             ; Allocate space for the task
             fmalloc.malloc(&main.fpm, 8184, pTaskImage) 
+
+            ; Load the image
+            cx16.rambank(pTaskImage[0]) ;
+            uword result = diskio.load(filename, $a008)
+            if result == 0 {
+                fmalloc.free(&main.fpm, pTaskImage)
+            }
+
         }
-
-        ; Allocate and set the filename
-        fmalloc.malloc(&main.fpm, string.length(filename) + 1, pFileName)             
-        fptr.memcopy_in(&pFileName, filename, string.length(filename) + 1);
-
-        ; Create the Task
-        fmalloc.malloc(&main.fpm, task.TASK_SIZEOF, pTaskData)         
-        task.done_set_wi(pTaskData, 0)                
-        task.taskimage_set(pTaskData, &pTaskImage);                
-        task.filename_set(pTaskData, &pFileName)
         
-        ; Insert it into task list as pTask
-        linkedlist.add_last(&main.fpm, pTaskList, &pTaskData, pTask);          
-                
-        ; Load Image from disk to pTaskImage[0]:a008
-        cx16.rambank(pTaskImage[0]) ;
-        uword result = diskio.load(filename, $a008)
+        if fptr.isnull(pTaskImage) == false {       
 
-        ; If it loaded run it's init method
-        if result > 0 {       
-            run(pTaskImage[0], API_INIT, param1, param2, pTask)                          
+            ; Allocate and set the filename
+            fmalloc.malloc(&main.fpm, string.length(filename) + 1, pFileName)             
+            fptr.memcopy_in(&pFileName, filename, string.length(filename) + 1);
 
-        ; Otherwise release it
+            ; Create the Task
+            fmalloc.malloc(&main.fpm, task.TASK_SIZEOF, pTaskData)         
+            task.done_set_wi(pTaskData, 0)                
+            task.taskimage_set(pTaskData, &pTaskImage);                
+            task.filename_set(pTaskData, &pFileName)
+            
+            ; Insert it into task list as pTask
+            linkedlist.add_last(&main.fpm, pTaskList, &pTaskData, pTask);                                                  
+
+            ; If it loaded run it's init method
+            run(pTaskImage[0], API_INIT, param1, param2, pTask)                                                          
+
+            return true
         } else {
-                           
-            ; Free the task
-            freeTask(pTask);            
-                        
-        }
-        return result != 0
+            return false
+        }        
     }
 
     sub run_task(ubyte[fptr.SIZEOF_FPTR] pTask, uword param1, uword param2) -> bool {
