@@ -1,5 +1,5 @@
 task {
-    const ubyte TASK_SIZEOF         = $15;    
+    const ubyte TASK_SIZEOF         = $18;    
     const ubyte TASK_TASKIMAGE      = $00; 3 - fptr
     const ubyte TASK_TITLE          = $03; 3 - fptr
     const ubyte TASK_STATE          = $06; 3 - fptr
@@ -9,6 +9,7 @@ task {
     const ubyte TASK_W              = $0f; 2 - uword
     const ubyte TASK_FILENAME       = $11; 3 - fptr
     const ubyte TASK_DONE           = $14; 2 - uword
+    const ubyte TASK_CANVAS         = $16; 3 - fptr
     
     sub taskimage_get(ubyte[3] ptr, uword result) {        
         fstruct.get(ptr, TASK_TASKIMAGE, fptr.SIZEOF_FPTR, result);
@@ -100,6 +101,14 @@ task {
     
     sub done_set_wi(ubyte[3] ptr, uword value) {
         fstruct.set_wi(ptr, TASK_DONE, value);
-    }       
+    }      
+
+    sub canvas_get(ubyte[3] ptr, uword result) {        
+        fstruct.get(ptr, TASK_CANVAS, fptr.SIZEOF_FPTR, result);
+    }
+
+    sub canvas_set(ubyte[3] ptr, uword value) {
+        fstruct.set(ptr, TASK_CANVAS, fptr.SIZEOF_FPTR, value);
+    } 
 }
 

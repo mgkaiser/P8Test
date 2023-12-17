@@ -8,4 +8,5 @@ txt {
     romsub $07f2 = get_column() -> ubyte @Y 
     romsub $07f5 = row(ubyte rownum @A) clobbers(A, X, Y) 
     romsub $07f8 = get_row() -> ubyte @X
+    romsub $ffd2 = chrout(ubyte character @ A)
 }
