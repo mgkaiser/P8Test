@@ -8,7 +8,7 @@ task {
     const ubyte TASK_H              = $0d; 2 - uword
     const ubyte TASK_W              = $0f; 2 - uword
     const ubyte TASK_FILENAME       = $11; 3 - fptr
-    const ubyte TASK_DONE           = $14; 2 - uword    
+    const ubyte TASK_DONE           = $14; 2 - uword        
     
     sub taskimage_get(ubyte[3] ptr, uword result) {        
         fstruct.get(ptr, TASK_TASKIMAGE, fptr.SIZEOF_FPTR, result);

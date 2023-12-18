@@ -5,7 +5,7 @@ message {
     const ubyte MESSAGE_MESSAGEID   = $06; uword
     const ubyte MESSAGE_PARAM1      = $08; uword
     const ubyte MESSAGE_PARAM2      = $0a; uword
-    const ubyte MESSAGE_PARAM3      = $0c; uword
+    const ubyte MESSAGE_PARAM3      = $0c; uword        
 
     sub task_get(ubyte[3] ptr, uword result) {        
         fstruct.get(ptr, MESSAGE_TASK, fptr.SIZEOF_FPTR, result);
@@ -24,7 +24,7 @@ message {
     }
 
     sub messageid_get(ubyte[3] ptr, uword result) {        
-        fstruct.get_w(ptr, TASK_DONE, result);
+        fstruct.get_w(ptr, MESSAGE_MESSAGEID, result);
     }
 
     sub messageid_set(ubyte[3] ptr, uword value) {

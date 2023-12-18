@@ -1,5 +1,7 @@
 %import diskio
 %import task_h
+%import message_h
+%import monogfx2
 
 api {
 
@@ -84,7 +86,7 @@ api {
         monogfx2.stipple(false)
 
         ; Initial draw
-        ;post_message(WM_PAINT, 0)
+        post_message(fptr.NULL, fptr.NULL, WM_PAINT, 0, 0, 0)
         
     }
 
@@ -98,51 +100,86 @@ api {
         ubyte[fptr.SIZEOF_FPTR] pTask;
         ubyte[fptr.SIZEOF_FPTR] pTaskData;   
         ubyte[fptr.SIZEOF_FPTR] pMessage;   
-
-        uword message = WM_PAINT;
+        uword message
+                
+        fmalloc.malloc(&main.fpm, message.MESSAGE_SIZEOF, pMessage) 
+        message.task_set(pMessage, &fptr.NULL)
+        message.component_set(pMessage, &fptr.NULL)
+        message.messageid_set_wi(pMessage, WM_PAINT)
+        message.param1_set_wi(pMessage, 0)
+        message.param2_set_wi(pMessage, 0)
+        message.param3_set_wi(pMessage, 0)
         
         while true {    
 
             ; Pull a message out of the queue
 
-            ; Extract the messageid    
+            if (fptr.isnull(&pMessage) == false ) {
 
-            ; If the message is for a specific task, send it
+                ; Extract the messageid    
+                message.messageid_get(pMessage, &message)
 
-            ; Otherwise dispatch it    
+                ; If the message is for a specific task, send it
+                message.task_get(pMessage, &pTask)
+                if (fptr.isnull(&pTask) == false ) {    
 
-            ; Do any initialization that must happen before message is dispatched
-            ;init_message(pTask, message, pMessage)
+                    ; Send the message to the one and only task it's meant for
+                    send_message(pTask, message, pMessage)                                             
 
-            ; Send messages with ID >= $80, to be processed in reverse Z order
-            if (message >= $8000) {
-                linkedlist.last(&api.pTaskList, pTask);                        
-                while fptr.isnull(&pTask) != true {                
-                    send_message(pTask, message, pMessage)                                 
-                    linkedlist.prev(pTask, pTask);
-                }            
-            }
+                ; Otherwise dispatch it    
+                } else {
 
-            ; Send messages with ID < $80, to be processed in forward Z order
-            if (message < $8000) {
-                linkedlist.first(&api.pTaskList, pTask);
-                while fptr.isnull(&pTask) != true {                                    
-                    send_message(pTask, message, pMessage)
-                    linkedlist.next(pTask, pTask);
+                    ; Do any initialization that must happen before message is dispatched
+                    init_message(pTask, message, pMessage)
+
+                    ; Send messages with ID >= $80, to be processed in reverse Z order
+                    if (message >= $8000) {
+                        linkedlist.last(&api.pTaskList, pTask);                        
+                        while fptr.isnull(&pTask) != true {                
+                            send_message(pTask, message, pMessage)   
+                            ; Bail on loop if message was destroyed                              
+                            linkedlist.prev(pTask, pTask);
+                        }            
+                    }
+
+                    ; Send messages with ID < $80, to be processed in forward Z order
+                    if (message < $8000) {
+                        linkedlist.first(&api.pTaskList, pTask);
+                        while fptr.isnull(&pTask) != true {                                    
+                            send_message(pTask, message, pMessage)
+                            ; Bail on loop if message was destroyed
+                            linkedlist.next(pTask, pTask);
+                        }
+                    }
                 }
             }
 
-            ; Destroy the message
-            message = WM_NULL
+            ; Destroy the message (unless something else along the way did)
+            if (fptr.isnull(&pMessage) == false ) {
+                fmalloc.free(&main.fpm, pMessage);
+                pMessage[0] = 0            
+                pMessage[1] = 0
+                pMessage[2] = 0
+            }
         }
     }        
+    
+    sub post_message(ubyte[fptr.SIZEOF_FPTR] pTask, ubyte[fptr.SIZEOF_FPTR] pComponent, uword messageId, uword param1, uword param2, uword param3) {        
 
-    /*
-    ; Reconsider params.  pTask, pComponent, messageId, param1, param2, param3
-    sub post_message(uword param1, uword param2) {
-        ; Push it into the queue to be processed later
+        ubyte[fptr.SIZEOF_FPTR] pMessage
+        
+        ; Create a new message
+        fmalloc.malloc(&main.fpm, message.MESSAGE_SIZEOF, pMessage) 
+        message.task_set(pMessage, &pTask)
+        message.component_set(pMessage, &pComponent)
+        message.messageid_set(pMessage, &messageId)
+        message.param1_set(pMessage, &param1)
+        message.param2_set(pMessage, &param2)
+        message.param3_set(pMessage, &param3)
+
+        ; Push it into the queue
+        fmalloc.free(&main.fpm, pMessage)
     }
-    */
     
     sub send_message(ubyte[fptr.SIZEOF_FPTR] pTask, uword messageId, ubyte[fptr.SIZEOF_FPTR] pMessage) {
         if process_message(pTask, messageId, pMessage) {  
@@ -191,6 +228,10 @@ api {
         monogfx2.fillrect(x,y,w,h,true);
         monogfx2.rect(x,y,w,h,false);
 
+        ; Draw a header with title
+
+        ; Draw a footer
+
         ; Let the task draw more on it
         return true;
 
@@ -232,8 +273,7 @@ api {
     sub init_task(str filename, str title, uword x, uword y, uword h, uword w, ubyte[fptr.SIZEOF_FPTR] pTask) -> bool {
 
         ubyte[fptr.SIZEOF_FPTR] pTaskData;
-        ubyte[fptr.SIZEOF_FPTR] pTaskImage;
-        ubyte[fptr.SIZEOF_FPTR] pCanvas;
+        ubyte[fptr.SIZEOF_FPTR] pTaskImage;        
         ubyte[fptr.SIZEOF_FPTR] pFileName;
         ubyte[fptr.SIZEOF_FPTR] pTitle;
 
@@ -256,7 +296,7 @@ api {
 
         }
         
-        if fptr.isnull(pTaskImage) == false {       
+        if fptr.isnull(&pTaskImage) == false {       
 
             ; Allocate and set the filename
             fmalloc.malloc(&main.fpm, string.length(filename) + 1, pFileName)             
@@ -264,9 +304,7 @@ api {
 
             ; Allocate and set the title
             fmalloc.malloc(&main.fpm, string.length(title) + 1, pTitle)             
-            fptr.memcopy_in(&pTitle, title, string.length(title) + 1);
-
-            ; Allocate and set the canvas - Big enough for characters and color
+            fptr.memcopy_in(&pTitle, title, string.length(title) + 1);            
 
             ; Create the Task
             fmalloc.malloc(&main.fpm, task.TASK_SIZEOF, pTaskData)                                 
@@ -277,8 +315,7 @@ api {
             task.y_set(pTaskData, &y)
             task.h_set(pTaskData, &h)
             task.w_set(pTaskData, &w)
-            task.done_set_wi(pTaskData, 0)    
-            task.canvas_set(pTaskData, &pCanvas)
+            task.done_set_wi(pTaskData, 0)                
             
             ; Insert it into task list as pTask
             linkedlist.add_last(&main.fpm, pTaskList, &pTaskData, pTask);                                                  
@@ -330,8 +367,7 @@ api {
     sub freeTask(ubyte[fptr.SIZEOF_FPTR] pTask) {
         ; If it's the last copy of this image, free pTaskImage
         ; Free pFileName
-        ; Free pTitle
-        ; Free pCanvas 
+        ; Free pTitle        
         ; Free pTaskData  
         ; Remove pTask from list
         ; Set pTask to null  
