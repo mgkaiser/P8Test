@@ -87,29 +87,13 @@ main $A008 {
     }
 
     sub run(ubyte[fptr.SIZEOF_FPTR] pTask, uword param1, uword param2) {
-        ubyte[fptr.SIZEOF_FPTR] pTaskData;
-        ubyte[fptr.SIZEOF_FPTR] pState;
-        uword counter;
-        uword x;
-        uword y;         
-
-        ; Get the task data        
-        linkedlist_item.data_get(pTask, &pTaskData)                 
-
-        ; Get the state 
-        task.state_get(pTaskData, &pState)        
-
-        ; Increment Counter
-        state.counter_get(pState, &counter)
-        counter = counter + 1
-        state.counter_set(pState, &counter)        
         
-        ; Display the data
-        state.x_get(pState, &x)    
-        state.y_get(pState, &y)  
-        txt.column(lsb(x))          
-        txt.row(lsb(y))
-        txt.print_uw(counter)              
+        ;when param1 {
+            
+            ;WM_PAINT -> {
+
+            ;}
+        ;}       
     }
 
     sub done(ubyte[fptr.SIZEOF_FPTR] pTask, uword param1, uword param2) {

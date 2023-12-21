@@ -4,6 +4,7 @@
 %import fmalloc
 %import pmalloc
 %import linkedlist
+%import monogfx2
 %option no_sysinit
 %zeropage basicsafe
 
@@ -17,11 +18,7 @@ main {
     ubyte[pmalloc.SIZEOF_PMALLOC] pm    
     
     sub start() {
-
-        txt.clear_screen()
-                
-        txt.print("p8test\n"); 
-
+                        
         ; Init stuff        
         fmalloc_init();                          
         malloc_init();
@@ -45,23 +42,14 @@ main {
         ; Test Linked List        
         ;linkedlist_test();
         
-    }
+    }    
 
     sub task_test() {
         ubyte[fptr.SIZEOF_FPTR] pTask;                     
 
-        void api.init_task("extprog2.prg", 1, 1, &pTask);          
-        void api.init_task("extprog2.prg", 10, 1, &pTask);          
-        void api.init_task("extprog2.prg", 1, 2, &pTask);           
-        void api.init_task("extprog2.prg", 10, 2, &pTask);           
-        void api.init_task("extprog2.prg", 1, 3, &pTask);           
-        void api.init_task("extprog2.prg", 10, 3, &pTask);  
-        void api.init_task("extprog.prg", 1, 4, &pTask);           
-        void api.init_task("extprog.prg", 10, 4, &pTask);  
-        void api.init_task("extprog.prg", 1, 5, &pTask);           
-        void api.init_task("extprog.prg", 10, 5, &pTask);  
-        void api.init_task("extprog.prg", 1, 6, &pTask);           
-        void api.init_task("extprog.prg", 10, 6, &pTask);         
+        void api.init_task("extprog.prg", "window 1", 10, 10, 100, 100, &pTask);          
+        void api.init_task("extprog.prg", "window 2", 80, 80, 100, 100, &pTask);                  
+        void api.init_task("extprog.prg", "window 3", 90, 120, 100, 100, &pTask);                  
 
         api.mainloop()  
         
