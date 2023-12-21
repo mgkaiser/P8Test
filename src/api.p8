@@ -100,7 +100,7 @@ api {
         ubyte[fptr.SIZEOF_FPTR] pTask;
         ubyte[fptr.SIZEOF_FPTR] pTaskData;   
         ubyte[fptr.SIZEOF_FPTR] pMessage;   
-        uword message
+        uword current_message
                 
         fmalloc.malloc(&main.fpm, message.MESSAGE_SIZEOF, pMessage) 
         message.task_set(pMessage, &fptr.NULL)
@@ -117,14 +117,14 @@ api {
             if (fptr.isnull(&pMessage) == false ) {
 
                 ; Extract the messageid    
-                message.messageid_get(pMessage, &message)
+                message.messageid_get(pMessage, &current_message)
 
                 ; If the message is for a specific task, send it
                 message.task_get(pMessage, &pTask)
                 if (fptr.isnull(&pTask) == false ) {    
 
                     ; Send the message to the one and only task it's meant for
-                    send_message(pTask, message, pMessage)                                             
+                    send_message(pTask, current_message, pMessage)                                             
 
                 ; Otherwise dispatch it    
                 } else {
@@ -133,20 +133,20 @@ api {
                     init_message(pTask, message, pMessage)
 
                     ; Send messages with ID >= $80, to be processed in reverse Z order
-                    if (message >= $8000) {
+                    if (current_message >= $8000) {
                         linkedlist.last(&api.pTaskList, pTask);                        
                         while fptr.isnull(&pTask) != true {                
-                            send_message(pTask, message, pMessage)   
+                            send_message(pTask, current_message, pMessage)   
                             ; Bail on loop if message was destroyed                              
                             linkedlist.prev(pTask, pTask);
                         }            
                     }
 
                     ; Send messages with ID < $80, to be processed in forward Z order
-                    if (message < $8000) {
+                    if (current_message < $8000) {
                         linkedlist.first(&api.pTaskList, pTask);
                         while fptr.isnull(&pTask) != true {                                    
-                            send_message(pTask, message, pMessage)
+                            send_message(pTask, current_message, pMessage)
                             ; Bail on loop if message was destroyed
                             linkedlist.next(pTask, pTask);
                         }
@@ -318,7 +318,7 @@ api {
             task.done_set_wi(pTaskData, 0)                
             
             ; Insert it into task list as pTask
-            linkedlist.add_last(&main.fpm, pTaskList, &pTaskData, pTask);                                                  
+            linkedlist.add_first(&main.fpm, pTaskList, &pTaskData, pTask);                                                  
 
             ; If it loaded run it's init method
             run(pTaskImage[0], API_INIT, 0, 0, pTask)                                                          
