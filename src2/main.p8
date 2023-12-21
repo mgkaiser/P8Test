@@ -4,6 +4,7 @@
 %import fmalloc
 %import pmalloc
 %import linkedlist
+%import queue
 %import monogfx2
 %option no_sysinit
 %zeropage basicsafe
@@ -22,10 +23,10 @@ main {
         ; Init stuff        
         fmalloc_init();                          
         malloc_init();
-        api.init();
+        ;api.init();
 
         ; Test Task
-        task_test();
+        ;task_test();
 
         ; Test fptr.compare
         ;fptr_compare_test(); 
@@ -41,6 +42,9 @@ main {
 
         ; Test Linked List        
         ;linkedlist_test();
+
+        ; Test Queue       
+        queue_test();
         
     }    
 
@@ -225,11 +229,49 @@ main {
 
     }
 
+    sub queue_test() {
+
+        ; Pointer to a linked list
+        ubyte[fptr.SIZEOF_FPTR] pQueue;        
+        ubyte[fptr.SIZEOF_FPTR] pText;        
+        str test = "             ";
+
+        queue.init(&fpm, &pQueue)
+        
+        void string.copy("element a", &test)                        
+        fmalloc.malloc(&fpm, 16, pText)              
+        fptr.memcopy_in(&pText, &test, 11);
+        queue.q_push(&fpm, &pQueue, pText);
+
+        void string.copy("element b", &test)                        
+        fmalloc.malloc(&fpm, 16, pText)              
+        fptr.memcopy_in(&pText, &test, 11);
+        queue.q_push(&fpm, &pQueue, pText);
+
+        void string.copy("element c", &test)                                        
+        fmalloc.malloc(&fpm, 16, pText)              
+        fptr.memcopy_in(&pText, &test, 11);
+        queue.q_push(&fpm, &pQueue, pText);
+
+        queue.q_pop(&fpm, &pQueue, &pText)
+        while fptr.isnull(pText) != true {
+            fptr.memcopy_out(&pText, &test, 11);
+            txt.print(test)
+            txt.print("\n")
+            fmalloc.free(&fpm, pText)
+            queue.q_pop(&fpm, &pQueue, &pText)
+        }        
+        queue.free(&fpm, &pQueue)
+    }
+
     sub linkedlist_test() {
+
+        const ubyte listSize = $08
 
         ; Temp pointers to be used below
         ubyte[fptr.SIZEOF_FPTR] ptr1;
         ubyte[fptr.SIZEOF_FPTR] pText;
+        ubyte[fptr.SIZEOF_FPTR] pHold;
 
         ; Pointer to a linked list
         ubyte[fptr.SIZEOF_FPTR] llr;        
@@ -243,7 +285,7 @@ main {
         txt.clear_screen();
 
         uword @zp i;
-        for i in 1 to $80 {   
+        for i in 1 to listSize {   
 
             ; Build the string
             conv.str_uwhex(i)            
@@ -257,6 +299,8 @@ main {
             ; Add it to the list            
             linkedlist.add_last(&fpm, llr, &pText, ptr1);    
 
+            if i == 4 pHold = ptr1
+
             ; Dump the result            
             txt.home();
             dump_fptr("ptext: ", pText);       
@@ -264,8 +308,8 @@ main {
             txt.print(" ");              
             txt.print(test);        
         }
-
-        for i in 1 to $80 {   
+        
+        for i in 1 to listSize {   
 
             ; Build the string
             conv.str_uwhex(i)            
@@ -308,8 +352,6 @@ main {
             ; Next item
             linkedlist.next(ptr1, ptr1);
         }
-
-        ;txt.clear_screen();   
         txt.print("\n")  ;
 
         ; Walk the list backwards
@@ -331,6 +373,51 @@ main {
             linkedlist.prev(ptr1, ptr1);
 
         }
+        txt.print("\n");
+
+        linkedlist.movetop(&fpm, llr, pHold)
+
+        ; Walk the list
+        linkedlist.first(&llr, ptr1);
+        while fptr.isnull(&ptr1) != true {
+
+            ; Copy the string into near memory
+            linkedlist_item.data_get(ptr1, pText);
+            fptr.memcopy_out(&pText, &test, 15);
+
+            ; Print it
+            txt.print("\n");
+            dump_fptr("ptext: ", pText);                 
+            dump_fptr(" ptr1: ", ptr1); 
+            txt.print(" ");        
+            txt.print(test);                    
+
+            ; Next item
+            linkedlist.next(ptr1, ptr1);
+        }
+        txt.print("\n");
+
+        linkedlist.movebottom(&fpm, llr, pHold)
+
+        ; Walk the list
+        linkedlist.first(&llr, ptr1);
+        while fptr.isnull(&ptr1) != true {
+
+            ; Copy the string into near memory
+            linkedlist_item.data_get(ptr1, pText);
+            fptr.memcopy_out(&pText, &test, 15);
+
+            ; Print it
+            txt.print("\n");
+            dump_fptr("ptext: ", pText);                 
+            dump_fptr(" ptr1: ", ptr1); 
+            txt.print(" ");        
+            txt.print(test);                    
+
+            ; Next item
+            linkedlist.next(ptr1, ptr1);
+        }
+        txt.print("\n");
 
         ; Release the list
         linkedlist.free(&fpm, &llr);        

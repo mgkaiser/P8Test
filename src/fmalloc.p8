@@ -8,7 +8,10 @@ fmalloc_root {
     const ubyte FMALLOC_assigned    = $03; ubyte[3]
     const ubyte FMALLOC_freemem     = $06; uword
     const ubyte FMALLOC_totalmem    = $08; uword
-    const ubyte FMALLOC_totalnodes  = $0a; uword    
+    const ubyte FMALLOC_totalnodes  = $0a; uword  
+
+    ; We need at least 24 bit addition to correctly reflect freemem and totalmem..... oops.
+    ; Maybe also 24bit for nodes?  Can we really have more than 65535 nodes?  I think performance nosedives if we do  
 
     sub available_get(uword ptr, uword result) {        
         struct.get(ptr, FMALLOC_available, fptr.SIZEOF_FPTR, result);

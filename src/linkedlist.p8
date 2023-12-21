@@ -129,23 +129,131 @@ linkedlist {
 
     }    
 
-    sub remove(ubyte[3] root, ubyte[3] ptr) {
+    sub remove(uword heap, ubyte[3] root, ubyte[3] ptr) {
+
+        ; Disconnect the node from the list
+        internal_remove(heap, root, ptr)
+
+        ; Free the node
+        fmalloc.free(heap, ptr)
+    }
+
+    sub internal_remove(uword heap, ubyte[3] root, ubyte[3] ptr) {
+
+        ubyte[fptr.SIZEOF_FPTR] pNext;
+        ubyte[fptr.SIZEOF_FPTR] pPrev;        
+        bool prevIsNull;
+        bool nextIsNull
+
+        ; Get the previous and next nodes
+        linkedlist_item.next_get(ptr, pNext);
+        linkedlist_item.prev_get(ptr, pPrev);
+
+        ; Check them for null
+        nextIsNull = fptr.isnull(pNext)
+        prevIsNull = fptr.isnull(pPrev)
+
+        ; We're the only node
+        if prevIsNull and nextIsNull {
+
+            ; Head -> null
+            linkedlist_root.head_set(root, &fptr.NULL);
+
+            ; Tail -> null
+            linkedlist_root.tail_set(root, &fptr.NULL);            
+
+        ; We're the first node
+        } else if prevIsNull {
+
+            ; Head -> pNext
+            linkedlist_root.head_set(root, pNext);
+
+            ; pNext.prev -> null
+            linkedlist_item.prev_set(pNext, &fptr.NULL);            
+
+        ; We're the last node
+        } else if nextIsNull {
+
+            ; Tail -> pPrev
+            linkedlist_root.tail_set(root, pPrev);
+
+            ; pPrev.next -> null
+            linkedlist_item.next_set(pPrev, &fptr.NULL);            
+
+        ; We're somewhere in the middle
+        } else {
+
+            ; pNext.prev -> pPrev
+            linkedlist_item.prev_set(pNext, pPrev);
+
+            ; pPrev.next -> pNext
+            linkedlist_item.next_set(pPrev, pNext);            
+        }
+                
+    }
+
+    sub moveup(uword heap, ubyte[3] root, ubyte[3] ptr) {
+        ; Remember ptr.prev
+        ; Detach the node
+        ; If ptr.prev is null
+            ; Move to top
+        ; Otherwise 
+            ; Insert before ptr.prev.prev
+    }
+
+    sub movedown(uword heap, ubyte[3] root, ubyte[3] ptr) {
+        ; Remember ptr.next
+        ; Detach the node
+        ; If ptr.next.next is null
+            ; Move to bottom
+        ; Otherwise 
+            ; Insert after ptr.next
+    }
+
+    sub movetop(uword heap, ubyte[3] root, ubyte[3] ptr) {
+
+        ubyte[3] pHead;
         
+        ; Detach the node
+        internal_remove(heap, root, ptr)
+
+        ; Get the head
+        linkedlist_root.head_get(root, pHead);
+        
+        ; ptr.next -> head
+        linkedlist_item.next_set(ptr, pHead);   
+
+        ; pHead.prev -> ptr    
+        linkedlist_item.prev_set(pHead, ptr);       
+        
+        ; ptr.prev -> null
+        linkedlist_item.prev_set(ptr, &fptr.NULL);       
+        
+        ; head -> ptr
+        linkedlist_root.head_set(root, ptr);
     }
 
-    sub moveup(ubyte[3] root, ubyte[3] ptr) {
+    sub movebottom(uword heap, ubyte[3] root, ubyte[3] ptr) {
 
-    }
+        ubyte[3] pTail;
+        
+        ; Detach the node
+        internal_remove(heap, root, ptr)
 
-    sub movedown(ubyte[3] root, ubyte[3] ptr) {
+        ; Get the tail
+        linkedlist_root.tail_get(root, pTail);
+        
+        ; ptr.prev -> tail
+        linkedlist_item.prev_set(ptr, pTail);   
 
-    }
-
-    sub movetop(ubyte[3] root, ubyte[3] ptr) {
-
-    }
-
-    sub movebottom(ubyte[3] root, ubyte[3] ptr) {
+        ; pTail.next -> ptr    
+        linkedlist_item.next_set(pTail, ptr);       
+        
+        ; ptr.next -> null
+        linkedlist_item.next_set(ptr, &fptr.NULL);       
+        
+        ; tail -> ptr
+        linkedlist_root.tail_set(root, ptr);
 
     }
 
@@ -182,12 +290,26 @@ linkedlist {
     }    
 
     sub free(uword heap, ubyte[3] root) {
+        ubyte[fptr.SIZEOF_FPTR] ptr1;
+        ubyte[fptr.SIZEOF_FPTR] ptr2;
+        ubyte[fptr.SIZEOF_FPTR] pData
+                           
+        linkedlist.first(root, ptr1);
+        while fptr.isnull(ptr1) != true {            
 
-        ; Free each item
+            ; Free each item data            
+            linkedlist_item.data_get(ptr1, pData);
+            fmalloc.free(heap, pData)
+                        
+            ; Next item            
+            ptr2 = ptr1            
+            linkedlist.next(ptr1, ptr1);
 
-        ; Free each item data
+            ; Free each item                    
+            fmalloc.free(heap, ptr2)
+        }   
 
-        ; Free the linked list
+        ; Free the linked list              
         fmalloc.free(heap, root);      
     }
 
