@@ -100,6 +100,7 @@ api {
         ubyte[fptr.SIZEOF_FPTR] pTask;
         ubyte[fptr.SIZEOF_FPTR] pTaskData;   
         ubyte[fptr.SIZEOF_FPTR] pMessage;   
+
         uword current_message
                 
         fmalloc.malloc(&main.fpm, message.MESSAGE_SIZEOF, pMessage) 
@@ -124,7 +125,7 @@ api {
                 if (fptr.isnull(&pTask) == false ) {    
 
                     ; Send the message to the one and only task it's meant for
-                    send_message(pTask, current_message, pMessage)                                             
+                    send_message(pTask, current_message, pMessage)            
 
                 ; Otherwise dispatch it    
                 } else {
