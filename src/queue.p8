@@ -10,20 +10,37 @@ queue {
         linkedlist.init(heap, root)
     }
 
-    sub push(uword heap, ubyte[3] root, uword data, ubyte[fptr.SIZEOF_FPTR] result) {
+    sub q_push(uword heap, ubyte[3] root, uword data) {
+        ubyte[fptr.SIZEOF_FPTR] result
         linkedlist.add_first(heap, root, data, result)
     }
 
-    sub pop(uword heap, ubyte[3] root, ubyte[fptr.SIZEOF_FPTR] result) {
+    sub q_pop(uword heap, ubyte[3] root, ubyte[fptr.SIZEOF_FPTR] result) {
         ubyte[fptr.SIZEOF_FPTR] pListItem
         linkedlist.first(root, pListItem)
-        linkedlist_item.data_get(pListItem, result)        
-        linkedlist.remove(heap, root, ubyte[3] pListItem)
+        if fptr.isnull(pListItem) {
+            result[0] = 0;
+            result[1] = 0;
+            result[2] = 0;
+        } else {
+            linkedlist_item.data_get(pListItem, result)        
+            linkedlist.remove(heap, root, pListItem)
+        }
     }
 
-    sub peek(ubyte[3] root, ubyte[fptr.SIZEOF_FPTR] result) {
+    sub q_peek(ubyte[3] root, ubyte[fptr.SIZEOF_FPTR] result) {
         ubyte[fptr.SIZEOF_FPTR] pListItem
         linkedlist.first(root, pListItem)
-        linkedlist_item.data_get(pListItem, result)        
+        if fptr.isnull(pListItem) {
+            result[0] = 0;
+            result[1] = 0;
+            result[2] = 0;
+        } else {
+            linkedlist_item.data_get(pListItem, result)        
+        }
+    }
+
+    sub free(uword heap, ubyte[3] root) {
+        linkedlist.free(heap, root)
     }
 }

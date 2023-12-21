@@ -4,6 +4,7 @@
 %import fmalloc
 %import pmalloc
 %import linkedlist
+%import queue
 %import monogfx2
 %option no_sysinit
 %zeropage basicsafe
@@ -40,7 +41,10 @@ main {
         ;fmalloc_test();
 
         ; Test Linked List        
-        linkedlist_test();
+        ;linkedlist_test();
+
+        ; Test Queue       
+        queue_test();
         
     }    
 
@@ -223,6 +227,41 @@ main {
     sub struct_test()
     {
 
+    }
+
+    sub queue_test() {
+
+        ; Pointer to a linked list
+        ubyte[fptr.SIZEOF_FPTR] pQueue;        
+        ubyte[fptr.SIZEOF_FPTR] pText;        
+        str test = "             ";
+
+        queue.init(&fpm, &pQueue)
+        
+        void string.copy("element a", &test)                        
+        fmalloc.malloc(&fpm, 16, pText)              
+        fptr.memcopy_in(&pText, &test, 11);
+        queue.q_push(&fpm, &pQueue, pText);
+
+        void string.copy("element b", &test)                        
+        fmalloc.malloc(&fpm, 16, pText)              
+        fptr.memcopy_in(&pText, &test, 11);
+        queue.q_push(&fpm, &pQueue, pText);
+
+        void string.copy("element c", &test)                                        
+        fmalloc.malloc(&fpm, 16, pText)              
+        fptr.memcopy_in(&pText, &test, 11);
+        queue.q_push(&fpm, &pQueue, pText);
+
+        queue.q_pop(&fpm, &pQueue, &pText)
+        while fptr.isnull(pText) != true {
+            fptr.memcopy_out(&pText, &test, 11);
+            txt.print(test)
+            txt.print("\n")
+            fmalloc.free(&fpm, pText)
+            queue.q_pop(&fpm, &pQueue, &pText)
+        }        
+        queue.free(&fpm, &pQueue)
     }
 
     sub linkedlist_test() {
