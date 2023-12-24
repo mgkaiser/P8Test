@@ -1,5 +1,10 @@
 %import diskio
 %import task_h
+%import queue
+%import mouse
+%import window
+%import desktop
+%import linkedlist
 %import message_h
 %import monogfx2
 
@@ -11,17 +16,14 @@ api {
     const ubyte API_RUN = $02
     const ubyte API_DONE = $03
 
-    const uword WM_NULL         = $0000
-
-    const uword WM_MOUSE_MOVE   = $0100
-    const uword WM_MOUSE_UP     = $0101
-    const uword WM_MOUSE_DOWN   = $0102
-
-    const uword WM_PAINT        = $8000
-
     ubyte[fptr.SIZEOF_FPTR] pTaskList;
+    ubyte[fptr.SIZEOF_FPTR] pQueue;
 
-    sub init() {
+    uword lastMouseX;
+    uword lastMouseY;
+    ubyte lastMouseButton;
+
+    sub init() {        
 
         uword address
 
@@ -77,16 +79,22 @@ api {
         address = registerjumpitem(address, &fmalloc_malloc_stub) 
         address = registerjumpitem(address, &fmalloc_free_stub) 
 
-        ; Initialize the task list
+        ; Initialize the task list        
         linkedlist.init(&main.fpm, &pTaskList);
 
-        ; Clear the screen
+        ; Initialize the queue        
+        queue.init(&main.fpm, &pQueue)
+
+        ; Clear the screen        
         monogfx2.hires();
         monogfx2.clear_screen_stipple()
         monogfx2.stipple(false)
 
-        ; Initial draw
-        post_message(fptr.NULL, fptr.NULL, WM_PAINT, 0, 0, 0)
+        ; Turn on the mouse        
+        mouse.mouse_config(1, 640/8, 480/8);
+
+        ; Initial draw        
+        post_message(fptr.NULL, fptr.NULL, message.WM_PAINT, 0, 0, fptr.NULL)        
         
     }
 
@@ -94,28 +102,71 @@ api {
         poke(address, $4c)  
         pokew(address+1, ptr)
         return address + 3
-    }    
+    }  
+
+    sub generateMouseEvents() {
+
+        uword mouseX, mouseY
+        ubyte mouseButton
+        bool  mousePressed
+        bool  lastMousePressed
+
+        ; Get the events        
+        mouseButton = mouse.mouse_get(2);
+        mouseX = cx16.r0;
+        mouseY = cx16.r1;
+        
+        ; Should we generate a mouse move event
+        if mouseX != lastMouseX or mouseY != lastMouseY {
+            post_message(fptr.NULL, fptr.NULL, message.WM_MOUSE_MOVE, mouseX, mouseY, fptr.NULL)        
+        }
+
+        ; Should we generate mouse_button events 
+        if mouseButton != lastMouseButton {
+            mousePressed = ((mouseButton and 1) == 1)
+            lastMousePressed = ((lastMouseButton and 1) == 1)
+            if (mousePressed != lastMousePressed) {
+                if mousePressed {
+                    post_message(fptr.NULL, fptr.NULL, message.WM_MOUSE_LEFT_DOWN, mouseX, mouseY, fptr.NULL)  
+                    emudbg.console_write("left-down ")
+                } else {
+                    post_message(fptr.NULL, fptr.NULL, message.WM_MOUSE_LEFT_UP, mouseX, mouseY, fptr.NULL)  
+                    emudbg.console_write("left-up ")
+                }
+            }
+            mousePressed = ((mouseButton and 2) == 2)
+            lastMousePressed = ((lastMouseButton and 2) == 2)
+            if (mousePressed != lastMousePressed) {
+                if mousePressed {                    
+                    post_message(fptr.NULL, fptr.NULL, message.WM_MOUSE_RIGHT_DOWN, mouseX, mouseY, fptr.NULL)  
+                    emudbg.console_write("right-down ")
+                } else {
+                    post_message(fptr.NULL, fptr.NULL, message.WM_MOUSE_RIGHT_UP, mouseX, mouseY, fptr.NULL)  
+                    emudbg.console_write("right-up ")
+                }
+            }
+        }
+
+        lastMouseX = mouseX
+        lastMouseY = mouseY
+        lastMouseButton = mouseButton        
+    }  
     
     sub mainloop() {
         ubyte[fptr.SIZEOF_FPTR] pTask;
         ubyte[fptr.SIZEOF_FPTR] pTaskData;   
         ubyte[fptr.SIZEOF_FPTR] pMessage;   
-
-        uword current_message
-                
-        fmalloc.malloc(&main.fpm, message.MESSAGE_SIZEOF, pMessage) 
-        message.task_set(pMessage, &fptr.NULL)
-        message.component_set(pMessage, &fptr.NULL)
-        message.messageid_set_wi(pMessage, WM_PAINT)
-        message.param1_set_wi(pMessage, 0)
-        message.param2_set_wi(pMessage, 0)
-        message.param3_set_wi(pMessage, 0)
+        uword current_message                      
         
         while true {    
 
-            ; Pull a message out of the queue
+            ; Generate the mouse events                      
+            generateMouseEvents();
 
-            if (fptr.isnull(&pMessage) == false ) {
+            ; Pull a message out of the queue                  
+            queue.q_pop(&main.fpm, &pQueue, &pMessage)            
+
+            if (fptr.isnull(&pMessage) == false ) {                
 
                 ; Extract the messageid    
                 message.messageid_get(pMessage, &current_message)
@@ -123,6 +174,8 @@ api {
                 ; If the message is for a specific task, send it
                 message.task_get(pMessage, &pTask)
                 if (fptr.isnull(&pTask) == false ) {    
+
+                    %asm{{ .byte $db }}
 
                     ; Send the message to the one and only task it's meant for
                     send_message(pTask, current_message, pMessage)            
@@ -138,7 +191,15 @@ api {
                         linkedlist.last(&api.pTaskList, pTask);                        
                         while fptr.isnull(&pTask) != true {                
                             send_message(pTask, current_message, pMessage)   
-                            ; Bail on loop if message was destroyed                              
+                            
+                            ; Bail on loop if message was destroyed
+                            message.messageid_get(pMessage, &current_message)
+                            if current_message == message.WM_CONSUMED 
+                            {
+                                emudbg.console_write("message-consumed ")
+                                goto message_done
+                            }         
+
                             linkedlist.prev(pTask, pTask);
                         }            
                     }
@@ -148,12 +209,22 @@ api {
                         linkedlist.first(&api.pTaskList, pTask);
                         while fptr.isnull(&pTask) != true {                                    
                             send_message(pTask, current_message, pMessage)
+
                             ; Bail on loop if message was destroyed
+                            message.messageid_get(pMessage, &current_message)
+                            if current_message == message.WM_CONSUMED 
+                            {
+                                emudbg.console_write("message-consumed ")
+                                goto message_done
+                            }         
+                            
                             linkedlist.next(pTask, pTask);
                         }
-                    }
-                }
+                    }                    
+                }                       
             }
+
+            message_done:
 
             ; Destroy the message (unless something else along the way did)
             if (fptr.isnull(&pMessage) == false ) {
@@ -165,79 +236,86 @@ api {
         }
     }        
     
-    sub post_message(ubyte[fptr.SIZEOF_FPTR] pTask, ubyte[fptr.SIZEOF_FPTR] pComponent, uword messageId, uword param1, uword param2, uword param3) {        
+    sub post_message(ubyte[fptr.SIZEOF_FPTR] pTask, ubyte[fptr.SIZEOF_FPTR] pComponent, uword messageId, uword param1, uword param2, ubyte[fptr.SIZEOF_FPTR] param3) {        
 
         ubyte[fptr.SIZEOF_FPTR] pMessage
         
         ; Create a new message
         fmalloc.malloc(&main.fpm, message.MESSAGE_SIZEOF, pMessage) 
-        message.task_set(pMessage, &pTask)
-        message.component_set(pMessage, &pComponent)
+        message.task_set(pMessage, pTask)
+        message.component_set(pMessage, pComponent)
         message.messageid_set(pMessage, &messageId)
         message.param1_set(pMessage, &param1)
         message.param2_set(pMessage, &param2)
-        message.param3_set(pMessage, &param3)
-
+        message.param3_set(pMessage, param3)
+        
         ; Push it into the queue
-        fmalloc.free(&main.fpm, pMessage)
+        queue.q_push(&main.fpm, &pQueue, pMessage)
+        
     }
     
-    sub send_message(ubyte[fptr.SIZEOF_FPTR] pTask, uword messageId, ubyte[fptr.SIZEOF_FPTR] pMessage) {
+    sub send_message(ubyte[fptr.SIZEOF_FPTR] pTask, uword messageId, ubyte[fptr.SIZEOF_FPTR] pMessage) -> bool {
         if process_message(pTask, messageId, pMessage) {  
                      
             ; Process user message
-            run_task(pTask, messageId, pMessage)  
+            return run_task(pTask, messageId, pMessage)  
 
         }
+
+        return false;
     }
         
     sub init_message(ubyte[fptr.SIZEOF_FPTR] pTask, uword messageId, ubyte[fptr.SIZEOF_FPTR] pMessage)  {        
         when messageId {
-            WM_PAINT -> paint_init()            
+            message.WM_PAINT -> desktop.paint()                        
         }    
     }
     
     sub process_message(ubyte[fptr.SIZEOF_FPTR] pTask, uword messageId, ubyte[fptr.SIZEOF_FPTR] pMessage) -> bool {        
         when messageId {
-            WM_PAINT -> return paint(pTask)            
+            message.WM_PAINT -> return window.paint(pTask)            
+            message.WM_TEXT -> text(pTask, pMessage)
+            message.WM_MOUSE_LEFT_UP -> window.mouseUp(pTask, pMessage)
         }
     }
 
-    sub paint_init () {
+    sub text (ubyte[fptr.SIZEOF_FPTR] pTask, ubyte[fptr.SIZEOF_FPTR] pMessage) -> bool {
 
-        ; Clear the screen
-        monogfx2.clear_screen_stipple()
+        ubyte[fptr.SIZEOF_FPTR] pTaskData
+        ubyte[fptr.SIZEOF_FPTR] pString
+        uword task_X, task_Y
+        uword text_X, text_Y        
+        str buffer = "                                 "
 
-    }
+        ; Get the taskdata from the task
+        linkedlist_item.data_get(pTask, &pTaskData) 
+        
+        ; Get the X and Y from the task
+        task.x_get(pTaskData, &task_X)
+        task.y_get(pTaskData, &task_Y)
 
-    sub paint (ubyte[fptr.SIZEOF_FPTR] pTask) -> bool {
+        ; Get X and Y from param1 and param2 of message
+        message.param1_get(pMessage, &text_X)
+        message.param2_get(pMessage, &text_Y)
 
-        ubyte[fptr.SIZEOF_FPTR] pTaskData;
-        uword x
-        uword y
-        uword h
-        uword w
+        ; Get string pointer from param3 of message
+        message.param3_get(pMessage, pString)
+        fptr.memcopy_out(&pString, buffer, 31);
+        buffer[32] = $00
 
-        ; Get the task data        
-        linkedlist_item.data_get(pTask, &pTaskData)   
-        task.x_get(pTaskData, &x)
-        task.y_get(pTaskData, &y)
-        task.h_get(pTaskData, &h)
-        task.w_get(pTaskData, &w)
+        ; Print it
+        monogfx2.text(task_X + text_X, task_Y + text_Y, true, &buffer);
 
-        ; Draw the window        
-        monogfx2.fillrect(x,y,w,h,true);
-        monogfx2.rect(x,y,w,h,false);
+        ; Dispose of string
+        fmalloc.free(&main.fpm, pString)
 
-        ; Draw a header with title
+        ; Set message to WM_CONSUMED
+        message.messageid_set_wi(pTask, message.WM_CONSUMED)
 
-        ; Draw a footer
-
-        ; Let the task draw more on it
         return true;
-
+        
     }
-
+        
     sub findByFilename(str filename, ubyte[fptr.SIZEOF_FPTR] pTaskImage) -> bool {        
                 
         ubyte[fptr.SIZEOF_FPTR] pTaskData2;
@@ -316,7 +394,7 @@ api {
             task.y_set(pTaskData, &y)
             task.h_set(pTaskData, &h)
             task.w_set(pTaskData, &w)
-            task.done_set_wi(pTaskData, 0)                
+            task.flags_clear(pTaskData)                
             
             ; Insert it into task list as pTask
             linkedlist.add_first(&main.fpm, pTaskList, &pTaskData, pTask);                                                  
@@ -343,9 +421,8 @@ api {
         ; Run the run method
         run(pTaskImage[0], API_RUN, messageId, &pMessage, pTask)  
         
-        ; Is it done?
-        task.done_get(pTaskData, &done)
-        return done != 0;
+        ; Is it done?        
+        return task.flags_done_get(pTaskData);
     }
 
     sub done_task(ubyte[fptr.SIZEOF_FPTR] pTask) {

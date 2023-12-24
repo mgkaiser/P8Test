@@ -6,6 +6,8 @@
 %import linkedlist
 %import queue
 %import monogfx2
+%import emudbg
+
 %option no_sysinit
 %zeropage basicsafe
 
@@ -23,10 +25,10 @@ main {
         ; Init stuff        
         fmalloc_init();                          
         malloc_init();
-        ;api.init();
+        api.init();
 
         ; Test Task
-        ;task_test();
+        task_test();
 
         ; Test fptr.compare
         ;fptr_compare_test(); 
@@ -44,17 +46,20 @@ main {
         ;linkedlist_test();
 
         ; Test Queue       
-        queue_test();
+        ;queue_test();
         
     }    
 
     sub task_test() {
         ubyte[fptr.SIZEOF_FPTR] pTask;                     
-
+        
+        %asm{{ nop }}
         void api.init_task("extprog.prg", "window 1", 10, 10, 100, 100, &pTask);          
-        void api.init_task("extprog.prg", "window 2", 80, 80, 100, 100, &pTask);                  
+        %asm{{ nop }}
+        void api.init_task("extprog.prg", "window 2", 80, 80, 100, 100, &pTask);                          
+        %asm{{ nop }}
         void api.init_task("extprog.prg", "window 3", 90, 120, 100, 100, &pTask);                  
-
+        %asm{{ nop }}
         api.mainloop()  
         
     }

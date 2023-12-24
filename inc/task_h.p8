@@ -8,7 +8,7 @@ task {
     const ubyte TASK_H              = $0d; 2 - uword
     const ubyte TASK_W              = $0f; 2 - uword
     const ubyte TASK_FILENAME       = $11; 3 - fptr
-    const ubyte TASK_DONE           = $14; 2 - uword        
+    const ubyte TASK_FLAGS          = $14; 2 - uword        
     
     sub taskimage_get(ubyte[3] ptr, uword result) {        
         fstruct.get(ptr, TASK_TASKIMAGE, fptr.SIZEOF_FPTR, result);
@@ -90,16 +90,48 @@ task {
         fstruct.set(ptr, TASK_FILENAME, fptr.SIZEOF_FPTR, value);
     }   
 
-    sub done_get(ubyte[3] ptr, uword result) {        
-        fstruct.get_w(ptr, TASK_DONE, result);
+    sub flags_clear(ubyte[3] ptr) {
+        fstruct.set_wi(ptr, TASK_FLAGS, 0);
+    }      
+
+    sub flags_done_get(ubyte[3] ptr) -> bool {
+        uword value;
+        fstruct.get_w(ptr, TASK_FLAGS, value);
+        return (value and $01) == $01
     }
 
-    sub done_set(ubyte[3] ptr, uword value) {
-        fstruct.set_w(ptr, TASK_DONE, value);
+    sub flags_done_set(ubyte[3] ptr) {
+        uword value;
+        fstruct.get_w(ptr, TASK_FLAGS, value);
+        value = value or $01
+        fstruct.set_w(ptr, TASK_FLAGS, value);
     }
-    
-    sub done_set_wi(ubyte[3] ptr, uword value) {
-        fstruct.set_wi(ptr, TASK_DONE, value);
+
+    sub flags_done_clear(ubyte[3] ptr) {
+        uword value;
+        fstruct.get_w(ptr, TASK_FLAGS, value);
+        value = value and ($ffff - $0001)
+        fstruct.set_w(ptr, TASK_FLAGS, value);
+    }       
+
+    sub flags_hasfocus_get(ubyte[3] ptr) -> bool {
+        uword value;
+        fstruct.get_w(ptr, TASK_FLAGS, value);
+        return (value and $02) == $02
+    }
+
+    sub flags_hasfocus_set(ubyte[3] ptr) {
+        uword value;
+        fstruct.get_w(ptr, TASK_FLAGS, value);
+        value = value or $02
+        fstruct.set_w(ptr, TASK_FLAGS, value);
+    }
+
+    sub flags_hasfocus_clear(ubyte[3] ptr) {
+        uword value;
+        fstruct.get_w(ptr, TASK_FLAGS, value);
+        value = value and ($ffff - $0002)
+        fstruct.set_w(ptr, TASK_FLAGS, value);
     }      
     
 }

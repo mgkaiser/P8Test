@@ -1,11 +1,24 @@
 message {
-    const ubyte MESSAGE_SIZEOF      = $0e
+    const ubyte MESSAGE_SIZEOF      = $0f
     const ubyte MESSAGE_TASK        = $00; ubyte[fptr.SIZEOF_FPTR]    
     const ubyte MESSAGE_COMPONENT   = $03; ubyte[fptr.SIZEOF_FPTR]    
     const ubyte MESSAGE_MESSAGEID   = $06; uword
     const ubyte MESSAGE_PARAM1      = $08; uword
     const ubyte MESSAGE_PARAM2      = $0a; uword
-    const ubyte MESSAGE_PARAM3      = $0c; uword        
+    const ubyte MESSAGE_PARAM3      = $0c; ubyte[fptr.SIZEOF_FPTR]    
+
+    const uword WM_NULL         = $0000
+
+    const uword WM_MOUSE_MOVE       = $0100
+    const uword WM_MOUSE_LEFT_UP    = $0101
+    const uword WM_MOUSE_LEFT_DOWN  = $0102
+    const uword WM_MOUSE_RIGHT_UP   = $0103
+    const uword WM_MOUSE_RIGHT_DOWN = $0104
+
+    const uword WM_PAINT        = $8000 
+    const uword WM_TEXT         = $8001 
+
+    const uword WM_CONSUMED     = $ffff
 
     sub task_get(ubyte[3] ptr, uword result) {        
         fstruct.get(ptr, MESSAGE_TASK, fptr.SIZEOF_FPTR, result);
@@ -60,14 +73,10 @@ message {
     }     
 
     sub param3_get(ubyte[3] ptr, uword result) {        
-        fstruct.get_w(ptr, MESSAGE_PARAM3, result);
+        fstruct.get(ptr, MESSAGE_PARAM3, fptr.SIZEOF_FPTR, result);
     }
 
     sub param3_set(ubyte[3] ptr, uword value) {
-        fstruct.set_w(ptr, MESSAGE_PARAM3, value);
+        fstruct.set(ptr, MESSAGE_PARAM3, fptr.SIZEOF_FPTR, value);
     }
-    
-    sub param3_set_wi(ubyte[3] ptr, uword value) {
-        fstruct.set_wi(ptr, MESSAGE_PARAM3, value);
-    }     
 }
