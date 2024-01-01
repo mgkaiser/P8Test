@@ -74,11 +74,11 @@ monogfx2 {
         position(0, 0)
         when width {
             320 -> {
-                repeat 240/8
+                repeat 120/8
                     cs_innerloop640_s(10)
             }
             640 -> {
-                repeat 480/8
+                repeat 240/8
                     cs_innerloop640_s(10)
             }
         }
