@@ -10,7 +10,7 @@
 
 api {
 
-    romsub $a008 = external_command(uword command @R0, uword param1 @R1, uword param2 @R2, uword pTask @R3);
+    romsub $a008 = external_command(uword command @R0, uword param1 @R1, uword param2 @R2, uword pTask @R3, uword pComponent @R4);
 
     const ubyte API_INIT = $01
     const ubyte API_RUN = $02
@@ -18,6 +18,7 @@ api {
 
     ubyte[fptr.SIZEOF_FPTR] pTaskList;
     ubyte[fptr.SIZEOF_FPTR] pQueue;
+    ubyte[fptr.SIZEOF_FPTR] pFocusTask;
 
     uword lastMouseX;
     uword lastMouseY;
@@ -85,6 +86,11 @@ api {
         ; Initialize the queue        
         queue.init(&main.fpm, &pQueue)
 
+        ; Nothing has focus yet
+        pFocusTask[0] = 0;
+        pFocusTask[1] = 0;
+        pFocusTask[2] = 0;
+
         ; Clear the screen        
         monogfx2.hires();
         monogfx2.clear_screen_stipple()
@@ -127,22 +133,18 @@ api {
             lastMousePressed = ((lastMouseButton and 1) == 1)
             if (mousePressed != lastMousePressed) {
                 if mousePressed {
-                    post_message(fptr.NULL, fptr.NULL, message.WM_MOUSE_LEFT_DOWN, mouseX, mouseY, fptr.NULL)  
-                    emudbg.console_write("left-down ")
+                    post_message(fptr.NULL, fptr.NULL, message.WM_MOUSE_LEFT_DOWN, mouseX, mouseY, fptr.NULL)                      
                 } else {
-                    post_message(fptr.NULL, fptr.NULL, message.WM_MOUSE_LEFT_UP, mouseX, mouseY, fptr.NULL)  
-                    emudbg.console_write("left-up ")
+                    post_message(fptr.NULL, fptr.NULL, message.WM_MOUSE_LEFT_UP, mouseX, mouseY, fptr.NULL)                      
                 }
             }
             mousePressed = ((mouseButton and 2) == 2)
             lastMousePressed = ((lastMouseButton and 2) == 2)
             if (mousePressed != lastMousePressed) {
                 if mousePressed {                    
-                    post_message(fptr.NULL, fptr.NULL, message.WM_MOUSE_RIGHT_DOWN, mouseX, mouseY, fptr.NULL)  
-                    emudbg.console_write("right-down ")
+                    post_message(fptr.NULL, fptr.NULL, message.WM_MOUSE_RIGHT_DOWN, mouseX, mouseY, fptr.NULL)                      
                 } else {
-                    post_message(fptr.NULL, fptr.NULL, message.WM_MOUSE_RIGHT_UP, mouseX, mouseY, fptr.NULL)  
-                    emudbg.console_write("right-up ")
+                    post_message(fptr.NULL, fptr.NULL, message.WM_MOUSE_RIGHT_UP, mouseX, mouseY, fptr.NULL)                      
                 }
             }
         }
@@ -164,41 +166,53 @@ api {
             generateMouseEvents();
 
             ; Pull a message out of the queue                  
-            queue.q_pop(&main.fpm, &pQueue, &pMessage)            
+            queue.q_pop(&main.fpm, &pQueue, &pMessage)  
 
+            ; If there is a message   
             if (fptr.isnull(&pMessage) == false ) {                
 
                 ; Extract the messageid    
-                message.messageid_get(pMessage, &current_message)
+                message.messageid_get(pMessage, &current_message)                                
+
+                ; Extract task
+                message.task_get(pMessage, &pTask)
+
+                ; If the message is for the desktop dispatch it                
+                if (fptr.compare(pTask, desktop.DESKTOP) == fptr.compare_equal) {
+
+                    done_message(pTask, current_message, pMessage)                         
 
                 ; If the message is for a specific task, send it
-                message.task_get(pMessage, &pTask)
-                if (fptr.isnull(&pTask) == false ) {    
-
-                    %asm{{ .byte $db }}
-
+                } else if (fptr.isnull(&pTask) == false ) {    
+                    
                     ; Send the message to the one and only task it's meant for
-                    send_message(pTask, current_message, pMessage)            
+                    ;emudbg.console_value1($01)          
+                    ;%asm{{ .byte $db }}
+                    send_message(pTask, fptr.NULL, current_message, pMessage)                
 
                 ; Otherwise dispatch it    
                 } else {
 
                     ; Do any initialization that must happen before message is dispatched
-                    init_message(pTask, message, pMessage)
+                    init_message(desktop.DESKTOP, current_message, pMessage)
 
                     ; Send messages with ID >= $80, to be processed in reverse Z order
                     if (current_message >= $8000) {
                         linkedlist.last(&api.pTaskList, pTask);                        
-                        while fptr.isnull(&pTask) != true {                
-                            send_message(pTask, current_message, pMessage)   
+                        while fptr.isnull(&pTask) != true {
+                            ;emudbg.console_value1($02)          
+                            ;%asm{{ .byte $db }}                
+                            send_message(pTask, fptr.NULL, current_message, pMessage)
                             
                             ; Bail on loop if message was destroyed
                             message.messageid_get(pMessage, &current_message)
                             if current_message == message.WM_CONSUMED 
-                            {
-                                emudbg.console_write("message-consumed ")
+                            {                                
                                 goto message_done
-                            }         
+                            }  
+
+                            ; Walk the list of controls on the form and dispatch to them...      
+                            ; TODO: 
 
                             linkedlist.prev(pTask, pTask);
                         }            
@@ -207,21 +221,30 @@ api {
                     ; Send messages with ID < $80, to be processed in forward Z order
                     if (current_message < $8000) {
                         linkedlist.first(&api.pTaskList, pTask);
-                        while fptr.isnull(&pTask) != true {                                    
-                            send_message(pTask, current_message, pMessage)
+                        while fptr.isnull(&pTask) != true {   
+                            ;emudbg.console_value1($03)          
+                            ;emudbg.console_value2(msb(current_message))
+                            ;emudbg.console_value2(lsb(current_message))
+                            ;%asm{{ .byte $db }}                                 
+                            send_message(pTask, fptr.NULL, current_message, pMessage)
 
                             ; Bail on loop if message was destroyed
                             message.messageid_get(pMessage, &current_message)
                             if current_message == message.WM_CONSUMED 
-                            {
-                                emudbg.console_write("message-consumed ")
+                            {                                
                                 goto message_done
-                            }         
+                            }     
+
+                            ; Walk the list of controls on the form and dispatch to them...   
+                            ; TODO: 
                             
                             linkedlist.next(pTask, pTask);
                         }
-                    }                    
-                }                       
+                    }     
+
+                    ; Do any cleanup that must happen
+                    done_message(desktop.DESKTOP, current_message, pMessage)                       
+                }                               
             }
 
             message_done:
@@ -234,7 +257,11 @@ api {
                 pMessage[2] = 0
             }
         }
-    }        
+    }
+
+    sub component_loop() {
+
+    }
     
     sub post_message(ubyte[fptr.SIZEOF_FPTR] pTask, ubyte[fptr.SIZEOF_FPTR] pComponent, uword messageId, uword param1, uword param2, ubyte[fptr.SIZEOF_FPTR] param3) {        
 
@@ -254,11 +281,13 @@ api {
         
     }
     
-    sub send_message(ubyte[fptr.SIZEOF_FPTR] pTask, uword messageId, ubyte[fptr.SIZEOF_FPTR] pMessage) -> bool {
+    sub send_message(ubyte[fptr.SIZEOF_FPTR] pTask, ubyte[fptr.SIZEOF_FPTR] pComponent, uword messageId, ubyte[fptr.SIZEOF_FPTR] pMessage) -> bool {
         if process_message(pTask, messageId, pMessage) {  
                      
             ; Process user message
-            return run_task(pTask, messageId, pMessage)  
+            ;emudbg.console_value1($04)          
+            ;%asm{{ .byte $db }}
+            return run_task(pTask, messageId, pMessage, pComponent)  
 
         }
 
@@ -271,12 +300,31 @@ api {
         }    
     }
     
-    sub process_message(ubyte[fptr.SIZEOF_FPTR] pTask, uword messageId, ubyte[fptr.SIZEOF_FPTR] pMessage) -> bool {        
+    sub process_message(ubyte[fptr.SIZEOF_FPTR] pTask, uword messageId, ubyte[fptr.SIZEOF_FPTR] pMessage) -> bool {     
+        bool result;          
+        ;emudbg.console_value1($05)          
+        ;%asm{{ .byte $db }}
         when messageId {
-            message.WM_PAINT -> return window.paint(pTask)            
-            message.WM_TEXT -> text(pTask, pMessage)
-            message.WM_MOUSE_LEFT_UP -> window.mouseUp(pTask, pMessage)
+            message.WM_PAINT -> result = window.paint(pTask)            
+            message.WM_TEXT -> result = text(pTask, pMessage)
+            message.WM_MOUSE_MOVE -> result = window.mouseMove(pTask, pMessage)
+            message.WM_MOUSE_LEFT_UP -> result = window.mouseUp(pTask, pMessage, true)
+            message.WM_MOUSE_RIGHT_UP -> result = window.mouseUp(pTask, pMessage, false)
+            message.WM_MOUSE_LEFT_DOWN -> result = window.mouseDown(pTask, pMessage, true)
+            message.WM_MOUSE_RIGHT_DOWN -> result = window.mouseDown(pTask, pMessage, false)
+            message.WM_ENTER -> result = window.enter(pTask)
+            message.WM_LEAVE -> result = window.leave(pTask)
         }
+        ;emudbg.console_value1($15)          
+        return result;
+    }
+
+    sub done_message(ubyte[fptr.SIZEOF_FPTR] pTask, uword messageId, ubyte[fptr.SIZEOF_FPTR] pMessage)  {                                                
+        when messageId {            
+            message.WM_MOUSE_MOVE -> desktop.mouseMove(pTask, pMessage)            
+            message.WM_ENTER -> desktop.enter(pTask)
+            message.WM_LEAVE -> desktop.leave(pTask)
+        }                        
     }
 
     sub text (ubyte[fptr.SIZEOF_FPTR] pTask, ubyte[fptr.SIZEOF_FPTR] pMessage) -> bool {
@@ -400,7 +448,9 @@ api {
             linkedlist.add_first(&main.fpm, pTaskList, &pTaskData, pTask);                                                  
 
             ; If it loaded run it's init method
-            run(pTaskImage[0], API_INIT, 0, 0, pTask)                                                          
+            ;emudbg.console_value1($20) 
+            run(pTaskImage[0], API_INIT, 0, 0, pTask, 0)                                                          
+            ;emudbg.console_value1($21) 
 
             return true
         } else {
@@ -408,7 +458,7 @@ api {
         }        
     }
 
-    sub run_task(ubyte[fptr.SIZEOF_FPTR] pTask, uword messageId, ubyte[fptr.SIZEOF_FPTR] pMessage) -> bool {
+    sub run_task(ubyte[fptr.SIZEOF_FPTR] pTask, ubyte[fptr.SIZEOF_FPTR] pComponent, uword messageId, ubyte[fptr.SIZEOF_FPTR] pMessage) -> bool {
 
         ubyte[fptr.SIZEOF_FPTR] pTaskImage;
         ubyte[fptr.SIZEOF_FPTR] pTaskData;
@@ -419,7 +469,9 @@ api {
         task.taskimage_get(pTaskData, &pTaskImage)                            
 
         ; Run the run method
-        run(pTaskImage[0], API_RUN, messageId, &pMessage, pTask)  
+        ;emudbg.console_value1($06)          
+        ;%asm{{ .byte $db }}
+        run(pTaskImage[0], API_RUN, messageId, &pMessage, pTask, pComponent)  
         
         ; Is it done?        
         return task.flags_done_get(pTaskData);
@@ -435,7 +487,9 @@ api {
         task.taskimage_get(pTaskData, &pTaskImage)             
         
         ; Run the done method - This should at least free the state, clean anything else up too.
-        run(pTaskImage[0], API_DONE, 0, 0, pTask)  
+        ;emudbg.console_value1($07)          
+        ;%asm{{ .byte $db }}
+        run(pTaskImage[0], API_DONE, 0, 0, pTask, 0)  
 
         ; Free the task
         freeTask(pTask);
@@ -454,10 +508,14 @@ api {
         pTask[2] = 0;       
     }
 
-    sub run (ubyte bank, uword messageId, uword param1, uword param2, uword pTask) {
-        cx16.rambank(bank);
-        external_command(messageId, param1, param2, pTask);
-    }
+    sub run (ubyte bank, uword messageId, uword param1, uword param2, uword pTask, uword pComponent) {
+        ;emudbg.console_value1($08)          
+        ;%asm{{ .byte $db }}
+        cx16.rambank(bank);        
+        external_command(messageId, param1, param2, pTask, pComponent);
+        ;emudbg.console_value1($18)
+        ;%asm{{ .byte $db }}
+    }    
 
     ; Stubs for routines that aren't assembly functions
     sub pmalloc_malloc_stub() {

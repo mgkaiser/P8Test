@@ -54,12 +54,16 @@ main {
         ubyte[fptr.SIZEOF_FPTR] pTask;                     
         
         %asm{{ nop }}
+        emudbg.console_value1($f0) 
         void api.init_task("extprog.prg", "window 1", 10, 10, 100, 100, &pTask);          
         %asm{{ nop }}
+        emudbg.console_value1($f1) 
         void api.init_task("extprog.prg", "window 2", 80, 80, 100, 100, &pTask);                          
         %asm{{ nop }}
+        emudbg.console_value1($f2) 
         void api.init_task("extprog.prg", "window 3", 90, 120, 100, 100, &pTask);                  
         %asm{{ nop }}
+        emudbg.console_value1($f3) 
         api.mainloop()  
         
     }
