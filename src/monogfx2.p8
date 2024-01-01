@@ -934,7 +934,7 @@ skip:
         %asm {{            
             tax           
 -           lda  #%10101010      
-            ldy  #10
+            ldy  #05
 -           sta  cx16.VERA_DATA0
             sta  cx16.VERA_DATA0
             sta  cx16.VERA_DATA0
@@ -943,10 +943,18 @@ skip:
             sta  cx16.VERA_DATA0
             sta  cx16.VERA_DATA0
             sta  cx16.VERA_DATA0
+            sta  cx16.VERA_DATA0
+            sta  cx16.VERA_DATA0
+            sta  cx16.VERA_DATA0
+            sta  cx16.VERA_DATA0
+            sta  cx16.VERA_DATA0
+            sta  cx16.VERA_DATA0
+            sta  cx16.VERA_DATA0
+            sta  cx16.VERA_DATA0            
             dey
             bne  -
             lda  #%01010101
-            ldy  #10
+            ldy  #05
 -           sta  cx16.VERA_DATA0
             sta  cx16.VERA_DATA0
             sta  cx16.VERA_DATA0
@@ -955,6 +963,14 @@ skip:
             sta  cx16.VERA_DATA0
             sta  cx16.VERA_DATA0
             sta  cx16.VERA_DATA0
+            sta  cx16.VERA_DATA0
+            sta  cx16.VERA_DATA0
+            sta  cx16.VERA_DATA0
+            sta  cx16.VERA_DATA0
+            sta  cx16.VERA_DATA0
+            sta  cx16.VERA_DATA0
+            sta  cx16.VERA_DATA0
+            sta  cx16.VERA_DATA0            
             dey
             bne  -            
             dex
