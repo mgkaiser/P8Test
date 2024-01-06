@@ -185,6 +185,7 @@ main {
 
     }
 
+    /*
     sub malloc_test()
     {
         uword ptr1;
@@ -218,6 +219,7 @@ main {
         txt.print("\n");
 
     }
+    */
 
     sub fmalloc_test()
     {
@@ -451,7 +453,7 @@ main {
         }      
 
     }
-
+    
     sub malloc_init() {
 
         ; Clear the heap
@@ -460,7 +462,7 @@ main {
         ; Add heap
         pmalloc.addblock(&pm, heap, 8192);               
 
-    }
+    }    
        
     sub dump_fptr(str prompt, ubyte[fptr.SIZEOF_FPTR] fptr)
     {        

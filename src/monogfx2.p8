@@ -934,7 +934,7 @@ skip:
         %asm {{            
             tax           
 -           lda  #%10101010      
-            ldy  #05
+            ldy  #5
 -           sta  cx16.VERA_DATA0
             sta  cx16.VERA_DATA0
             sta  cx16.VERA_DATA0
@@ -954,7 +954,7 @@ skip:
             dey
             bne  -
             lda  #%01010101
-            ldy  #05
+            ldy  #5
 -           sta  cx16.VERA_DATA0
             sta  cx16.VERA_DATA0
             sta  cx16.VERA_DATA0

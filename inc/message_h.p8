@@ -23,6 +23,8 @@ message {
 
     const uword WM_CONSUMED     = $ffff
 
+    romsub $0450 = post_message(uword pTask @R0, uword pComponent @R1, uword messageId @R2, uword param1 @R3, uword param2 @R4, uword param3 @R5)     
+
     sub task_get(ubyte[3] ptr, uword result) {        
         fstruct.get(ptr, MESSAGE_TASK, fptr.SIZEOF_FPTR, result);
     }

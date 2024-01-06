@@ -7,6 +7,8 @@
 %import linkedlist
 %import message_h
 %import monogfx2
+%import pmalloc
+%import fmalloc
 
 api {
 
@@ -74,11 +76,15 @@ api {
         address = $0440
         address = registerjumpitem(address, &pmalloc_malloc_stub) 
         address = registerjumpitem(address, &pmalloc_free_stub) 
-
+        
         ; Register methods from "fmalloc"              
         address = $0448
         address = registerjumpitem(address, &fmalloc_malloc_stub) 
         address = registerjumpitem(address, &fmalloc_free_stub) 
+
+        ; Register message methods
+        address = $0450
+        address = registerjumpitem(address, &post_message_stub)         
 
         ; Initialize the task list        
         linkedlist.init(&main.fpm, &pTaskList);
@@ -156,7 +162,7 @@ api {
     
     sub mainloop() {
         ubyte[fptr.SIZEOF_FPTR] pTask;
-        ubyte[fptr.SIZEOF_FPTR] pTaskData;   
+        ubyte[fptr.SIZEOF_FPTR] pComponent;        
         ubyte[fptr.SIZEOF_FPTR] pMessage;   
         uword current_message                      
         
@@ -184,11 +190,14 @@ api {
 
                 ; If the message is for a specific task, send it
                 } else if (fptr.isnull(&pTask) == false ) {    
+
+                    ; Extract component
+                    message.task_get(pMessage, &pComponent)
                     
                     ; Send the message to the one and only task it's meant for
                     ;emudbg.console_value1($01)          
                     ;%asm{{ .byte $db }}
-                    send_message(pTask, fptr.NULL, current_message, pMessage)                
+                    send_message(pTask, pComponent, current_message, pMessage)                                                    
 
                 ; Otherwise dispatch it    
                 } else {
@@ -209,10 +218,7 @@ api {
                             if current_message == message.WM_CONSUMED 
                             {                                
                                 goto message_done
-                            }  
-
-                            ; Walk the list of controls on the form and dispatch to them...      
-                            ; TODO: 
+                            }                              
 
                             linkedlist.prev(pTask, pTask);
                         }            
@@ -233,10 +239,7 @@ api {
                             if current_message == message.WM_CONSUMED 
                             {                                
                                 goto message_done
-                            }     
-
-                            ; Walk the list of controls on the form and dispatch to them...   
-                            ; TODO: 
+                            }                                 
                             
                             linkedlist.next(pTask, pTask);
                         }
@@ -259,8 +262,27 @@ api {
         }
     }
 
-    sub component_loop() {
+    sub component_loop(ubyte[fptr.SIZEOF_FPTR] pTask, ubyte[fptr.SIZEOF_FPTR] pComponent, uword messageId, ubyte[fptr.SIZEOF_FPTR] pMessage) {
+                
+        ubyte[fptr.SIZEOF_FPTR] pTaskData;
+        ubyte[fptr.SIZEOF_FPTR] pComponents;
 
+        ; Get the taskdata from the task
+        linkedlist_item.data_get(pTask, &pTaskData)   
+
+        ; Get the component list for the task
+        task.components_get(pTaskData, &pComponents)
+
+        ; Walk the list
+
+            ; If pComponent == NULL process_component_message then run_task for component
+            ; If pComponent != NULL -> only for pComponent specified process_component_message then run_task for component
+
+    }
+
+    sub process_component_message() {
+        ; nested when componentId
+            ; nested when messageId
     }
     
     sub post_message(ubyte[fptr.SIZEOF_FPTR] pTask, ubyte[fptr.SIZEOF_FPTR] pComponent, uword messageId, uword param1, uword param2, ubyte[fptr.SIZEOF_FPTR] param3) {        
@@ -282,16 +304,20 @@ api {
     }
     
     sub send_message(ubyte[fptr.SIZEOF_FPTR] pTask, ubyte[fptr.SIZEOF_FPTR] pComponent, uword messageId, ubyte[fptr.SIZEOF_FPTR] pMessage) -> bool {
+        bool result = false
         if process_message(pTask, messageId, pMessage) {  
                      
             ; Process user message
             ;emudbg.console_value1($04)          
             ;%asm{{ .byte $db }}
-            return run_task(pTask, messageId, pMessage, pComponent)  
-
+            result = run_task(pTask, messageId, pMessage, fptr.NULL)  
+            
         }
 
-        return false;
+        ; Walk the list of controls on the form and dispatch to them...   
+        ;component_loop(pTask, pComponent, messageId, pMessage);
+
+        return result;
     }
         
     sub init_message(ubyte[fptr.SIZEOF_FPTR] pTask, uword messageId, ubyte[fptr.SIZEOF_FPTR] pMessage)  {        
@@ -403,6 +429,7 @@ api {
         ubyte[fptr.SIZEOF_FPTR] pTaskImage;        
         ubyte[fptr.SIZEOF_FPTR] pFileName;
         ubyte[fptr.SIZEOF_FPTR] pTitle;
+        ubyte[fptr.SIZEOF_FPTR] pComponents;
 
         ; See if a task with the same file name already exists 
         if findByFilename(filename, pTaskImage) {
@@ -442,7 +469,11 @@ api {
             task.y_set(pTaskData, &y)
             task.h_set(pTaskData, &h)
             task.w_set(pTaskData, &w)
-            task.flags_clear(pTaskData)                
+            task.flags_clear(pTaskData)   
+
+            ; Create the compnent list
+            linkedlist.init(&main.fpm, pComponents)             
+            task.components_set(pTaskData, pComponents)
             
             ; Insert it into task list as pTask
             linkedlist.add_first(&main.fpm, pTaskList, &pTaskData, pTask);                                                  
@@ -500,6 +531,7 @@ api {
         ; If it's the last copy of this image, free pTaskImage
         ; Free pFileName
         ; Free pTitle        
+        ; Free pComponents 
         ; Free pTaskData  
         ; Remove pTask from list
         ; Set pTask to null  
@@ -517,8 +549,8 @@ api {
         ;%asm{{ .byte $db }}
     }    
 
-    ; Stubs for routines that aren't assembly functions
-    sub pmalloc_malloc_stub() {
+    ; Stubs for routines that aren't assembly functions    
+        sub pmalloc_malloc_stub() {
         cx16.r1 = pmalloc.malloc(&main.pm, cx16.r0);
     }
 
@@ -532,6 +564,10 @@ api {
 
     sub fmalloc_free_stub() {
         fmalloc.free(&main.fpm, cx16.r0);
+    }
+
+    sub post_message_stub() {
+        post_message(cx16.r0, cx16.r1, cx16.r2, cx16.r3, cx16.r4, cx16.r5)              
     }
     
 }
