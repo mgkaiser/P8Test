@@ -18,7 +18,34 @@ monogfx2 {
     uword height = 0
     bool dont_stipple_flag = true            ; set to false to enable stippling mode
 
-    sub lores() {
+    ubyte drawPage = 0
+
+    sub showpage1() {
+        cx16.VERA_CTRL=0
+        cx16.VERA_DC_VIDEO = (cx16.VERA_DC_VIDEO & %11001111) | %00010000;           
+    }
+
+    sub showpage0() {
+        cx16.VERA_CTRL=0
+        cx16.VERA_DC_VIDEO = (cx16.VERA_DC_VIDEO & %11001111) | %00100000;                                
+    }    
+    
+    sub fixSprite() {     
+                
+        ; Point the mouse cursor at the image
+        cx16.vpoke($01, $fc00, $00)
+        cx16.vpoke($01, $fc01, $85)
+        cx16.vpoke($01, $fc06, %00001100)
+        cx16.vpoke($01, $fc07, %01010000)
+
+        ; Copy the mouse cursor into a safe place in VRAM                            
+        ubyte i;
+        for i in 0 to 255 {
+            cx16.vpoke($00, $a000 + i, mouse_sprite_data[i])
+        }        
+    }
+
+    sub lores() {        
         ; enable 320*240 bitmap mode
         cx16.VERA_CTRL=0
         cx16.VERA_DC_VIDEO = (cx16.VERA_DC_VIDEO & %11001111) | %00100000      ; enable only layer 1
@@ -26,13 +53,16 @@ monogfx2 {
         cx16.VERA_DC_VSCALE = 64
         cx16.VERA_L1_CONFIG = %00000100
         cx16.VERA_L1_MAPBASE = 0
-        cx16.VERA_L1_TILEBASE = 0
+        cx16.VERA_L1_TILEBASE = 0 
+        cx16.VERA_L0_CONFIG = %00000100
+        cx16.VERA_L0_MAPBASE = 128
+        cx16.VERA_L0_TILEBASE = %10000001               
         width = 320
         height = 240
         clear_screen(0)
     }
 
-    sub hires() {
+    sub hires() {        
         ; enable 640*480 bitmap mode
         cx16.VERA_CTRL=0
         cx16.VERA_DC_VIDEO = (cx16.VERA_DC_VIDEO & %11001111) | %00100000      ; enable only layer 1
@@ -40,7 +70,10 @@ monogfx2 {
         cx16.VERA_DC_VSCALE = 128
         cx16.VERA_L1_CONFIG = %00000100
         cx16.VERA_L1_MAPBASE = 0
-        cx16.VERA_L1_TILEBASE = %00000001
+        cx16.VERA_L1_TILEBASE = %00000001  
+        cx16.VERA_L0_CONFIG = %00000100
+        cx16.VERA_L0_MAPBASE = 0
+        cx16.VERA_L0_TILEBASE = %10000001        
         width = 640
         height = 480
         clear_screen(0)
@@ -74,12 +107,12 @@ monogfx2 {
         position(0, 0)
         when width {
             320 -> {
-                repeat 240/8
-                    cs_innerloop640_s(10)
+                repeat 240/$10/2
+                    cs_innerloop640_s($10)
             }
             640 -> {
-                repeat 480/8
-                    cs_innerloop640_s(10)
+                repeat 480/$10/2
+                    cs_innerloop640_s($10)
             }
         }
         position(0, 0)
@@ -780,7 +813,7 @@ skip:
             cx16.r0 = yy*(320/8)
         else
             cx16.r0 = yy*(640/8)
-        cx16.vaddr(0, cx16.r0+(xx/8), 0, 1)
+        cx16.vaddr(drawPage, cx16.r0+(xx/8), 0, 1)
     }
 
     sub position2(uword @zp xx, uword yy, bool also_port_1) {
@@ -934,7 +967,7 @@ skip:
         %asm {{            
             tax           
 -           lda  #%10101010      
-            ldy  #10
+            ldy  #5
 -           sta  cx16.VERA_DATA0
             sta  cx16.VERA_DATA0
             sta  cx16.VERA_DATA0
@@ -943,10 +976,18 @@ skip:
             sta  cx16.VERA_DATA0
             sta  cx16.VERA_DATA0
             sta  cx16.VERA_DATA0
+            sta  cx16.VERA_DATA0
+            sta  cx16.VERA_DATA0
+            sta  cx16.VERA_DATA0
+            sta  cx16.VERA_DATA0
+            sta  cx16.VERA_DATA0
+            sta  cx16.VERA_DATA0
+            sta  cx16.VERA_DATA0
+            sta  cx16.VERA_DATA0            
             dey
             bne  -
             lda  #%01010101
-            ldy  #10
+            ldy  #5
 -           sta  cx16.VERA_DATA0
             sta  cx16.VERA_DATA0
             sta  cx16.VERA_DATA0
@@ -955,6 +996,14 @@ skip:
             sta  cx16.VERA_DATA0
             sta  cx16.VERA_DATA0
             sta  cx16.VERA_DATA0
+            sta  cx16.VERA_DATA0
+            sta  cx16.VERA_DATA0
+            sta  cx16.VERA_DATA0
+            sta  cx16.VERA_DATA0
+            sta  cx16.VERA_DATA0
+            sta  cx16.VERA_DATA0
+            sta  cx16.VERA_DATA0
+            sta  cx16.VERA_DATA0            
             dey
             bne  -            
             dex
@@ -962,4 +1011,7 @@ skip:
             rts
         }}
     }
+
+    ubyte[] mouse_sprite_data = [ $01, $01, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $01, $10, $01, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $01, $10, $10, $01, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $01, $10, $10, $10, $01, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $01, $10, $10, $10, $10, $01, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $01, $10, $10, $10, $10, $10, $01, $00, $00, $00, $00, $00, $00, $00, $00, $00, $01, $10, $10, $10, $10, $10, $10, $01, $00, $00, $00, $00, $00, $00, $00, $00, $01, $10, $10, $10, $10, $10, $10, $10, $01, $00, $00, $00, $00, $00, $00, $00, $01, $10, $10, $10, $10, $10, $10, $10, $10, $01, $00, $00, $00, $00, $00, $00, $01, $10, $10, $10, $10, $10, $01, $01, $01, $01, $01, $00, $00, $00, $00, $00, $01, $10, $10, $01, $10, $10, $01, $00, $00, $00, $00, $00, $00, $00, $00, $00, $01, $10, $01, $00, $01, $10, $10, $01, $00, $00, $00, $00, $00, $00, $00, $00, $01, $01, $00, $00, $01, $10, $10, $01, $00, $00, $00, $00, $00, $00, $00, $00, $01, $00, $00, $00, $00, $01, $10, $10, $01, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $01, $10, $10, $01, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $01, $01, $01, $00, $00, $00, $00, $00, $00, $00 ]
+        
 }

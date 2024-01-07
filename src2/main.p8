@@ -6,6 +6,8 @@
 %import linkedlist
 %import queue
 %import monogfx2
+%import emudbg
+
 %option no_sysinit
 %zeropage basicsafe
 
@@ -23,10 +25,10 @@ main {
         ; Init stuff        
         fmalloc_init();                          
         malloc_init();
-        ;api.init();
+        api.init();
 
         ; Test Task
-        ;task_test();
+        task_test();
 
         ; Test fptr.compare
         ;fptr_compare_test(); 
@@ -44,17 +46,24 @@ main {
         ;linkedlist_test();
 
         ; Test Queue       
-        queue_test();
+        ;queue_test();
         
     }    
 
     sub task_test() {
         ubyte[fptr.SIZEOF_FPTR] pTask;                     
-
+        
+        %asm{{ nop }}
+        emudbg.console_value1($f0) 
         void api.init_task("extprog.prg", "window 1", 10, 10, 100, 100, &pTask);          
-        void api.init_task("extprog.prg", "window 2", 80, 80, 100, 100, &pTask);                  
+        %asm{{ nop }}
+        emudbg.console_value1($f1) 
+        void api.init_task("extprog.prg", "window 2", 80, 80, 100, 100, &pTask);                          
+        %asm{{ nop }}
+        emudbg.console_value1($f2) 
         void api.init_task("extprog.prg", "window 3", 90, 120, 100, 100, &pTask);                  
-
+        %asm{{ nop }}
+        emudbg.console_value1($f3) 
         api.mainloop()  
         
     }
@@ -176,6 +185,7 @@ main {
 
     }
 
+    /*
     sub malloc_test()
     {
         uword ptr1;
@@ -209,6 +219,7 @@ main {
         txt.print("\n");
 
     }
+    */
 
     sub fmalloc_test()
     {
@@ -442,7 +453,7 @@ main {
         }      
 
     }
-
+    
     sub malloc_init() {
 
         ; Clear the heap
@@ -451,7 +462,7 @@ main {
         ; Add heap
         pmalloc.addblock(&pm, heap, 8192);               
 
-    }
+    }    
        
     sub dump_fptr(str prompt, ubyte[fptr.SIZEOF_FPTR] fptr)
     {        
