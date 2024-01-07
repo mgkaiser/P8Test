@@ -2,12 +2,33 @@ desktop {
 
     ubyte[] DESKTOP = [$ff,$ff,$ff];
 
+    ubyte currentPage = 0;
+
     sub paint () {
+
+        emudbg.console_write(iso:"desktop.paint\r\n")
+
+        if monogfx2.drawPage == 0 {
+            monogfx2.showpage0()
+            monogfx2.drawPage = 1
+        } else {
+            monogfx2.showpage1()
+            monogfx2.drawPage = 0
+        }                
 
         ; Clear the screen        
         monogfx2.clear_screen_stipple()
         monogfx2.stipple(false)
 
+    }
+
+    sub paint_done() {
+        emudbg.console_write(iso:"desktop.paint_done\r\n")
+        if monogfx2.drawPage == 0 {
+            monogfx2.showpage0()
+        } else {
+            monogfx2.showpage1()
+        }
     }
 
     sub mouseMove(ubyte[fptr.SIZEOF_FPTR] pTask, ubyte[fptr.SIZEOF_FPTR] pMessage)  {    

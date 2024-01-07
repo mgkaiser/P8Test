@@ -108,7 +108,7 @@ window {
 
         ; Get the mouse param1_set
         message.param1_get(pMessage, &mouseX)
-        message.param2_get(pMessage, &mouseY)
+        message.param2_get(pMessage, &mouseY)        
 
         ; Did they click in this window?
         if mouseInWindowBoundaries(winX, winY, winH, winW, mouseX, mouseY) {            
@@ -140,7 +140,7 @@ window {
     }
 
     sub mouseDown(ubyte[fptr.SIZEOF_FPTR] pTask, ubyte[fptr.SIZEOF_FPTR] pMessage, bool left) -> bool {
-        emudbg.console_write(iso:"window.mouseDown\r\n")
+        emudbg.console_write(iso:"window.mouseDown\r\n")        
         return true
     }
 

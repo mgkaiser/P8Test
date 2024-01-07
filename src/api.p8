@@ -347,7 +347,8 @@ api {
     }
 
     sub done_message(ubyte[fptr.SIZEOF_FPTR] pTask, uword messageId, ubyte[fptr.SIZEOF_FPTR] pMessage)  {                                                
-        when messageId {            
+        when messageId { 
+            message.WM_PAINT -> desktop.paint_done()           
             message.WM_MOUSE_MOVE -> desktop.mouseMove(pTask, pMessage)            
             message.WM_ENTER -> desktop.enter(pTask)
             message.WM_LEAVE -> desktop.leave(pTask)

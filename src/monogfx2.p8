@@ -18,6 +18,21 @@ monogfx2 {
     uword height = 0
     bool dont_stipple_flag = true            ; set to false to enable stippling mode
 
+    ubyte drawPage = 0
+
+    sub showpage1() {
+        cx16.VERA_CTRL=0
+        cx16.VERA_DC_VIDEO = (cx16.VERA_DC_VIDEO & %11001111) | %00010000;        
+    }
+
+    sub showpage0() {
+        cx16.VERA_CTRL=0
+        cx16.VERA_DC_VIDEO = (cx16.VERA_DC_VIDEO & %11001111) | %00100000;                
+    }    
+
+    ; Copy the mouse cursor into a safe place in VRAM
+    ; Point the mouse cursor at the image
+
     sub lores() {
         ; enable 320*240 bitmap mode
         cx16.VERA_CTRL=0
@@ -26,7 +41,10 @@ monogfx2 {
         cx16.VERA_DC_VSCALE = 64
         cx16.VERA_L1_CONFIG = %00000100
         cx16.VERA_L1_MAPBASE = 0
-        cx16.VERA_L1_TILEBASE = 0
+        cx16.VERA_L1_TILEBASE = 0 
+        cx16.VERA_L0_CONFIG = %00000100
+        cx16.VERA_L0_MAPBASE = 128
+        cx16.VERA_L0_TILEBASE = %10000001               
         width = 320
         height = 240
         clear_screen(0)
@@ -40,7 +58,10 @@ monogfx2 {
         cx16.VERA_DC_VSCALE = 128
         cx16.VERA_L1_CONFIG = %00000100
         cx16.VERA_L1_MAPBASE = 0
-        cx16.VERA_L1_TILEBASE = %00000001
+        cx16.VERA_L1_TILEBASE = %00000001  
+        cx16.VERA_L0_CONFIG = %00000100
+        cx16.VERA_L0_MAPBASE = 0
+        cx16.VERA_L0_TILEBASE = %10000001        
         width = 640
         height = 480
         clear_screen(0)
@@ -780,7 +801,7 @@ skip:
             cx16.r0 = yy*(320/8)
         else
             cx16.r0 = yy*(640/8)
-        cx16.vaddr(0, cx16.r0+(xx/8), 0, 1)
+        cx16.vaddr(drawPage, cx16.r0+(xx/8), 0, 1)
     }
 
     sub position2(uword @zp xx, uword yy, bool also_port_1) {
