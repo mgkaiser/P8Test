@@ -103,7 +103,8 @@ api {
         monogfx2.stipple(false)
 
         ; Turn on the mouse        
-        mouse.mouse_config(1, 640/8, 480/8);
+        mouse.mouse_config(1, 640/8, 480/8);        
+        monogfx2.fixSprite()
 
         ; Initial draw        
         post_message(fptr.NULL, fptr.NULL, message.WM_PAINT, 0, 0, fptr.NULL)        
