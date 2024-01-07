@@ -18,8 +18,10 @@ message {
     const uword WM_ENTER            = $0200
     const uword WM_LEAVE            = $0201
 
-    const uword WM_PAINT        = $8000 
-    const uword WM_TEXT         = $8001 
+    const uword WM_TOP              = $0300
+
+    const uword WM_PAINT            = $8000 
+    const uword WM_TEXT             = $8001 
 
     const uword WM_CONSUMED     = $ffff
 

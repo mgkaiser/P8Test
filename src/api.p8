@@ -307,15 +307,15 @@ api {
         bool result = false
         if process_message(pTask, messageId, pMessage) {  
                      
-            ; Process user message
-            ;emudbg.console_value1($04)          
-            ;%asm{{ .byte $db }}
+            ; Process user message            
             result = run_task(pTask, messageId, pMessage, fptr.NULL)  
             
         }
 
         ; Walk the list of controls on the form and dispatch to them...   
-        ;component_loop(pTask, pComponent, messageId, pMessage);
+        if messageId != message.WM_CONSUMED {
+            component_loop(pTask, pComponent, messageId, pMessage);
+        }
 
         return result;
     }
@@ -340,6 +340,7 @@ api {
             message.WM_MOUSE_RIGHT_DOWN -> result = window.mouseDown(pTask, pMessage, false)
             message.WM_ENTER -> result = window.enter(pTask)
             message.WM_LEAVE -> result = window.leave(pTask)
+            message.WM_TOP -> window.top(pTask)
         }
         ;emudbg.console_value1($15)          
         return result;

@@ -76,6 +76,16 @@ window {
 
     }
 
+    sub top(ubyte[fptr.SIZEOF_FPTR] pTask) {
+
+        emudbg.console_write(iso:"window.top\r\n")
+
+        ; Move window to top and repaint
+        linkedlist.movetop(&main.fpm, &api.pTaskList, pTask)            
+        api.post_message(fptr.NULL, fptr.NULL, message.WM_PAINT, 0, 0, fptr.NULL)  
+
+    }
+
     sub mouseUp(ubyte[fptr.SIZEOF_FPTR] pTask, ubyte[fptr.SIZEOF_FPTR] pMessage, bool left) -> bool {
 
         ubyte[fptr.SIZEOF_FPTR] pTaskData
@@ -85,7 +95,9 @@ window {
         uword winH
         uword winW
         uword mouseX
-        uword mouseY        
+        uword mouseY   
+
+        emudbg.console_write(iso:"window.mouseUp\r\n")     
 
         ; Get the window dimensions
         linkedlist_item.data_get(pTask, &pTaskData)   
@@ -103,9 +115,9 @@ window {
             
             ; Left button pressed
             if left {
-                ; Move window to top and repaint
-                linkedlist.movetop(&main.fpm, &api.pTaskList, pTask)            
-                api.post_message(fptr.NULL, fptr.NULL, message.WM_PAINT, 0, 0, fptr.NULL)                 
+
+                ; Move window to top and repaint                
+                api.post_message(pTask, fptr.NULL, message.WM_TOP, 0, 0, fptr.NULL)                 
             
             ; Right button pressed
             } else {
@@ -128,6 +140,7 @@ window {
     }
 
     sub mouseDown(ubyte[fptr.SIZEOF_FPTR] pTask, ubyte[fptr.SIZEOF_FPTR] pMessage, bool left) -> bool {
+        emudbg.console_write(iso:"window.mouseDown\r\n")
         return true
     }
 
