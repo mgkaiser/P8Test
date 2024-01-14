@@ -1,6 +1,7 @@
 %import textio_h
 %import fstruct_h
 %import fmalloc_h
+%import api_h
 %import task_h
 %import linkedlist_item_h
 

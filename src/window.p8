@@ -86,6 +86,8 @@ window {
 
     }
 
+    ; WM_CLICK
+
     sub mouseUp(ubyte[fptr.SIZEOF_FPTR] pTask, ubyte[fptr.SIZEOF_FPTR] pMessage, bool left) -> bool {
 
         ubyte[fptr.SIZEOF_FPTR] pTaskData

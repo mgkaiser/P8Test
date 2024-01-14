@@ -84,7 +84,11 @@ api {
 
         ; Register message methods
         address = $0450
-        address = registerjumpitem(address, &post_message_stub)         
+        address = registerjumpitem(address, &post_message_stub) 
+        
+        ; Register api methods
+        address = $0458
+        address = registerjumpitem(address, &add_component_stub)
 
         ; Initialize the task list        
         linkedlist.init(&main.fpm, &pTaskList);
@@ -195,9 +199,7 @@ api {
                     ; Extract component
                     message.task_get(pMessage, &pComponent)
                     
-                    ; Send the message to the one and only task it's meant for
-                    ;emudbg.console_value1($01)          
-                    ;%asm{{ .byte $db }}
+                    ; Send the message to the one and only task it's meant for                    
                     send_message(pTask, pComponent, current_message, pMessage)                                                    
 
                 ; Otherwise dispatch it    
@@ -210,8 +212,7 @@ api {
                     if (current_message >= $8000) {
                         linkedlist.last(&api.pTaskList, pTask);                        
                         while fptr.isnull(&pTask) != true {
-                            ;emudbg.console_value1($02)          
-                            ;%asm{{ .byte $db }}                
+                                         
                             send_message(pTask, fptr.NULL, current_message, pMessage)
                             
                             ; Bail on loop if message was destroyed
@@ -229,10 +230,7 @@ api {
                     if (current_message < $8000) {
                         linkedlist.first(&api.pTaskList, pTask);
                         while fptr.isnull(&pTask) != true {   
-                            ;emudbg.console_value1($03)          
-                            ;emudbg.console_value2(msb(current_message))
-                            ;emudbg.console_value2(lsb(current_message))
-                            ;%asm{{ .byte $db }}                                 
+                                                
                             send_message(pTask, fptr.NULL, current_message, pMessage)
 
                             ; Bail on loop if message was destroyed
@@ -332,8 +330,7 @@ api {
         ;emudbg.console_value1($05)          
         ;%asm{{ .byte $db }}
         when messageId {
-            message.WM_PAINT -> result = window.paint(pTask)            
-            message.WM_TEXT -> result = text(pTask, pMessage)
+            message.WM_PAINT -> result = window.paint(pTask)                        
             message.WM_MOUSE_MOVE -> result = window.mouseMove(pTask, pMessage)
             message.WM_MOUSE_LEFT_UP -> result = window.mouseUp(pTask, pMessage, true)
             message.WM_MOUSE_RIGHT_UP -> result = window.mouseUp(pTask, pMessage, false)
@@ -355,44 +352,7 @@ api {
             message.WM_LEAVE -> desktop.leave(pTask)
         }                        
     }
-
-    sub text (ubyte[fptr.SIZEOF_FPTR] pTask, ubyte[fptr.SIZEOF_FPTR] pMessage) -> bool {
-
-        ubyte[fptr.SIZEOF_FPTR] pTaskData
-        ubyte[fptr.SIZEOF_FPTR] pString
-        uword task_X, task_Y
-        uword text_X, text_Y        
-        str buffer = "                                 "
-
-        ; Get the taskdata from the task
-        linkedlist_item.data_get(pTask, &pTaskData) 
-        
-        ; Get the X and Y from the task
-        task.x_get(pTaskData, &task_X)
-        task.y_get(pTaskData, &task_Y)
-
-        ; Get X and Y from param1 and param2 of message
-        message.param1_get(pMessage, &text_X)
-        message.param2_get(pMessage, &text_Y)
-
-        ; Get string pointer from param3 of message
-        message.param3_get(pMessage, pString)
-        fptr.memcopy_out(&pString, buffer, 31);
-        buffer[32] = $00
-
-        ; Print it
-        monogfx2.text(task_X + text_X, task_Y + text_Y, true, &buffer);
-
-        ; Dispose of string
-        fmalloc.free(&main.fpm, pString)
-
-        ; Set message to WM_CONSUMED
-        message.messageid_set_wi(pTask, message.WM_CONSUMED)
-
-        return true;
-        
-    }
-        
+            
     sub findByFilename(str filename, ubyte[fptr.SIZEOF_FPTR] pTaskImage) -> bool {        
                 
         ubyte[fptr.SIZEOF_FPTR] pTaskData2;
@@ -420,7 +380,11 @@ api {
         }
 
         return false
-    }    
+    }   
+
+    sub add_component(ubyte[fptr.SIZEOF_FPTR] pTask, uword componentId, uword x, uword y, uword h, uword w, ubyte[fptr.SIZEOF_FPTR] pText, ubyte[fptr.SIZEOF_FPTR] pComponent ) {
+
+    }
 
     ; Launcher
     ;
@@ -555,6 +519,10 @@ api {
     ; Stubs for routines that aren't assembly functions    
         sub pmalloc_malloc_stub() {
         cx16.r1 = pmalloc.malloc(&main.pm, cx16.r0);
+    }
+
+    sub add_component_stub() {
+        add_component(cx16.r0, cx16.r1, cx16.r2, cx16.r3, cx16.r4, cx16.r5, cx16.r6, cx16.r7 )
     }
 
     sub pmalloc_free_stub() {
