@@ -2,7 +2,6 @@
 %import textio
 %import string
 %import fmalloc
-%import pmalloc
 %import linkedlist
 %import queue
 %import monogfx2
@@ -14,17 +13,12 @@
 main {
 
     ; Far Heap
-    ubyte[fmalloc_root.SIZEOF_FMALLOC] fpm;  
-
-    ; Near Heap
-    uword heap = memory("heap", 8192, 0);
-    ubyte[pmalloc.SIZEOF_PMALLOC] pm    
+    ubyte[fmalloc_root.SIZEOF_FMALLOC] fpm;      
     
     sub start() {
                         
         ; Init stuff        
-        fmalloc_init();                          
-        malloc_init();
+        fmalloc_init();                                  
         api.init();
 
         ; Test Task
@@ -68,6 +62,7 @@ main {
         
     }
 
+    /*
     sub fptr_equal_test() {
         ubyte[fptr.SIZEOF_FPTR] fptr1 = [$02, $34, $12];
         ubyte[fptr.SIZEOF_FPTR] fptr2;
@@ -184,43 +179,7 @@ main {
         txt.print("\n");
 
     }
-
-    /*
-    sub malloc_test()
-    {
-        uword ptr1;
-        uword ptr2;
-        uword ptr3;
-
-        ptr1 = pmalloc.malloc(&pm, 32);
-        dump_ptr("\nptr1:", ptr1);
-
-        ptr2 = pmalloc.malloc(&pm, 32);
-        dump_ptr("\nptr2:", ptr2);
-
-        ptr3 = pmalloc.malloc(&pm, 32);
-        dump_ptr("\nptr3:", ptr3);
-
-        pmalloc.free(&pm, ptr1);
-        pmalloc.free(&pm, ptr3);
-
-        ptr3 = pmalloc.malloc(&pm, 32);
-        dump_ptr("\nptr3:", ptr3);
-        
-        pmalloc.free(&pm, ptr3);
-
-        ptr3 = pmalloc.malloc(&pm, 64);
-        dump_ptr("\nptr3:", ptr3);
-
-        ptr1 = pmalloc.malloc(&pm, 32);
-        dump_ptr("\nptr1:", ptr1);
-        
-                        
-        txt.print("\n");
-
-    }
-    */
-
+   
     sub fmalloc_test()
     {
         ubyte[fptr.SIZEOF_FPTR] ptr1;
@@ -435,6 +394,8 @@ main {
         
     }
 
+    */
+
     sub fmalloc_init() {
 
         ; Clear the heap
@@ -452,20 +413,27 @@ main {
             fmalloc.addblock(&fpm, fheap1, 8192);               
         }      
 
-    }
-    
-    sub malloc_init() {
-
-        ; Clear the heap
-        pmalloc.init(&pm);                           
-
-        ; Add heap
-        pmalloc.addblock(&pm, heap, 8192);               
-
     }    
-       
-    sub dump_fptr(str prompt, ubyte[fptr.SIZEOF_FPTR] fptr)
-    {        
+    
+    sub format_fptr(ubyte[fptr.SIZEOF_FPTR] fptr) -> str {
+
+        str buffer = "00:0000"
+
+        conv.str_ubhex(fptr[0])
+        string.copy(conv.string_out, &buffer)
+        string.copy(":", &buffer + 2)
+
+        conv.str_ubhex(fptr[1])
+        string.copy(conv.string_out, &buffer + 3)
+
+        conv.str_ubhex(fptr[2])
+        string.copy(conv.string_out, &buffer + 5)
+
+        return buffer
+        
+    }
+           
+    sub dump_fptr(str prompt, ubyte[fptr.SIZEOF_FPTR] fptr) {                
         txt.print(prompt);
         txt.print_ubhex(fptr[0], false)        
         txt.print(":");        
@@ -473,8 +441,7 @@ main {
         txt.print_ubhex(fptr[1], false)                
     }
 
-    sub dump_ptr(str prompt, uword ptr)
-    {        
+    sub dump_ptr(str prompt, uword ptr) {        
         txt.print(prompt);
         txt.print_uwhex(ptr, false)                                      
     }

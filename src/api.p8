@@ -2,12 +2,12 @@
 %import task_h
 %import queue
 %import mouse
+%import component_h
 %import window
 %import desktop
 %import linkedlist
 %import message_h
 %import monogfx2
-%import pmalloc
 %import fmalloc
 
 api {
@@ -70,12 +70,11 @@ api {
         address = registerjumpitem(address, &fptr.set) 
         address = registerjumpitem(address, &fptr.get) 
         address = registerjumpitem(address, &fptr.memcopy_in) 
-        address = registerjumpitem(address, &fptr.memcopy_out) 
-        
-        ; Register methods from "pmalloc"              
+        address = registerjumpitem(address, &fptr.memcopy_out)                     
+
+        ; Register api methods
         address = $0440
-        address = registerjumpitem(address, &pmalloc_malloc_stub) 
-        address = registerjumpitem(address, &pmalloc_free_stub) 
+        address = registerjumpitem(address, &add_component_stub)
         
         ; Register methods from "fmalloc"              
         address = $0448
@@ -84,11 +83,7 @@ api {
 
         ; Register message methods
         address = $0450
-        address = registerjumpitem(address, &post_message_stub) 
-        
-        ; Register api methods
-        address = $0458
-        address = registerjumpitem(address, &add_component_stub)
+        address = registerjumpitem(address, &post_message_stub)                 
 
         ; Initialize the task list        
         linkedlist.init(&main.fpm, &pTaskList);
@@ -384,6 +379,32 @@ api {
 
     sub add_component(ubyte[fptr.SIZEOF_FPTR] pTask, uword componentId, uword x, uword y, uword h, uword w, ubyte[fptr.SIZEOF_FPTR] pText, ubyte[fptr.SIZEOF_FPTR] pComponent ) {
 
+        ubyte[fptr.SIZEOF_FPTR] pTaskData
+        ubyte[fptr.SIZEOF_FPTR] pComponents
+        ubyte[fptr.SIZEOF_FPTR] pComponentData
+
+        ; Get the task data for this task
+        linkedlist_item.data_get(pTask, &pTaskData) 
+
+        ; Get the component list for this task
+        task.components_get(pTaskData, &pComponents)
+
+        ; Allocate a new component
+        fmalloc.malloc(&main.fpm, component.COMPONENT_SIZEOF, pComponentData)
+
+        ; Set the data
+        component.componentId_set(pComponentData, componentId)
+        component.x_set(pComponentData, x)
+        component.y_set(pComponentData, y)
+        component.h_set(pComponentData, h)
+        component.w_set(pComponentData, w)
+        component.text_set(pComponentData, pText)
+
+        ; Add it to the list
+        emudbg.console_write(iso:"pComponents: ")
+        emudbg.console_write(main.format_fptr(pComponents))
+        emudbg.console_write(iso:"\r\n")
+        ;linkedlist.add_first(&main.fpm, pComponents, &pComponentData, pComponent);
     }
 
     ; Launcher
@@ -517,18 +538,10 @@ api {
     }    
 
     ; Stubs for routines that aren't assembly functions    
-        sub pmalloc_malloc_stub() {
-        cx16.r1 = pmalloc.malloc(&main.pm, cx16.r0);
-    }
-
     sub add_component_stub() {
         add_component(cx16.r0, cx16.r1, cx16.r2, cx16.r3, cx16.r4, cx16.r5, cx16.r6, cx16.r7 )
     }
-
-    sub pmalloc_free_stub() {
-        pmalloc.free(&main.pm, cx16.r0);
-    }
-
+    
     sub fmalloc_malloc_stub() {
         fmalloc.malloc(&main.fpm, cx16.r0, cx16.r1);
     }

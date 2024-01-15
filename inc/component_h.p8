@@ -10,6 +10,18 @@ component {
     const ubyte COMPONENT_FLAGS         = $0a; 2 - uword        
     const ubyte COMPONENT_TEXT          = $0c; 3 - fptr
 
+    sub componentId_get(ubyte[3] ptr, uword result) {        
+        fstruct.get_w(ptr, COMPONENT_ID, result);
+    }
+
+    sub componentId_set(ubyte[3] ptr, uword value) {
+        fstruct.set_w(ptr, COMPONENT_ID, value);
+    }
+    
+    sub componentId_set_wi(ubyte[3] ptr, uword value) {
+        fstruct.set_wi(ptr, COMPONENT_ID, value);
+    }    
+
     sub x_get(ubyte[3] ptr, uword result) {        
         fstruct.get_w(ptr, COMPONENT_X, result);
     }

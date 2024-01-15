@@ -2,6 +2,7 @@
 %import fstruct_h
 %import fmalloc_h
 %import api_h
+%import component_h
 %import task_h
 %import linkedlist_item_h
 
@@ -72,6 +73,8 @@ main $A008 {
 
         ubyte[fptr.SIZEOF_FPTR] pTaskData;
         ubyte[fptr.SIZEOF_FPTR] pState;
+        ubyte[fptr.SIZEOF_FPTR] pComponent;
+        ubyte[fptr.SIZEOF_FPTR] pText;
 
         ; Get the task data
         linkedlist_item.data_get(pTask, &pTaskData)        
@@ -83,7 +86,13 @@ main $A008 {
         state.y_set(pState, &param2)    
 
         ; Attach it to the task
-        task.state_set(pTaskData, &pState)        
+        task.state_set(pTaskData, &pState)    
+
+        ; Add the label
+        str text = "sample";
+        fmalloc.malloc(16, &pText);
+        fptr.memcopy_in(&pText, text, 16);                    
+        ;api.add_component_(pTask, component.CM_LABEL, 10, 10, 10, 40, pText, pComponent)     
         
     }
 
