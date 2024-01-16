@@ -89,10 +89,12 @@ main $A008 {
         task.state_set(pTaskData, &pState)    
 
         ; Add the label
-        str text = "sample";
+        str text = "fart";
         fmalloc.malloc(16, &pText);
-        fptr.memcopy_in(&pText, text, 16);                    
-        ;api.add_component_(pTask, component.CM_LABEL, 10, 10, 10, 40, pText, pComponent)     
+        %asm{{.byte $db}}
+        fptr.memcopy_in(&pText, &text, 5);                    
+        api.add_component(pTask, component.CM_LABEL, 8, 8, 8, 40, pText, pComponent)     
+        api.add_component(pTask, component.CM_LABEL, 8, 16, 8, 40, pText, pComponent)                     
         
     }
 

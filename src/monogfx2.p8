@@ -832,6 +832,36 @@ skip:
         cx16.screen_set_charset(charset, 0)
     }
 
+    sub petsciiToScreencode(str petsciiBuffer, str screenCodeBuffer) {
+
+        ubyte i = 0;
+
+        while (petsciiBuffer[i] != $00) {
+
+            if (petsciiBuffer[i] >= $00 and petsciiBuffer[i] <=$1f) {
+                screenCodeBuffer[i] = petsciiBuffer[i] + 128
+            } else if (petsciiBuffer[i] >= $20 and petsciiBuffer[i] <=$3f) {
+                screenCodeBuffer[i] = petsciiBuffer[i]
+            } else if (petsciiBuffer[i] >= $40 and petsciiBuffer[i] <=$5f) {
+                screenCodeBuffer[i] = petsciiBuffer[i] - 64
+            } else if (petsciiBuffer[i] >= $60 and petsciiBuffer[i] <=$7f) {
+                screenCodeBuffer[i] = petsciiBuffer[i] - 32
+            } else if (petsciiBuffer[i] >= $80 and petsciiBuffer[i] <=$9f) {
+                screenCodeBuffer[i] = petsciiBuffer[i] + 64
+            } else if (petsciiBuffer[i] >= $a0 and petsciiBuffer[i] <=$bf) {
+                screenCodeBuffer[i] = petsciiBuffer[i] - 64
+            } else if (petsciiBuffer[i] >= $c0 and petsciiBuffer[i] <=$fe) {
+                screenCodeBuffer[i] = petsciiBuffer[i] - 128            
+            } else if (petsciiBuffer[i] == $ff) {
+                screenCodeBuffer[i] = $5e
+            }
+
+            i++;
+
+        }
+
+    }
+
     sub text(uword @zp xx, uword yy, bool draw, uword sctextptr) {
         ; -- Write some text at the given pixel position. The text string must be in screencode encoding (not petscii!).
         ;    You must also have called text_charset() first to select and prepare the character set to use.

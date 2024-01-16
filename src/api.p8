@@ -2,6 +2,7 @@
 %import task_h
 %import queue
 %import mouse
+%import label
 %import component_h
 %import window
 %import desktop
@@ -123,7 +124,8 @@ api {
         bool  mousePressed
         bool  lastMousePressed
 
-        ; Get the events        
+        ; Get the events   
+        cx16.rombank(0)   
         mouseButton = mouse.mouse_get(2);
         mouseX = cx16.r0;
         mouseY = cx16.r1;
@@ -165,23 +167,25 @@ api {
         ubyte[fptr.SIZEOF_FPTR] pComponent;        
         ubyte[fptr.SIZEOF_FPTR] pMessage;   
         uword current_message                      
+
+        emudbg.console_write(iso:"inside mainloop\r\n")                                
         
         while true {    
 
-            ; Generate the mouse events                      
-            generateMouseEvents();
+            ; Generate the mouse events              
+            generateMouseEvents();            
 
             ; Pull a message out of the queue                  
-            queue.q_pop(&main.fpm, &pQueue, &pMessage)  
+            queue.q_pop(&main.fpm, &pQueue, &pMessage)      
 
             ; If there is a message   
             if (fptr.isnull(&pMessage) == false ) {                
 
                 ; Extract the messageid    
-                message.messageid_get(pMessage, &current_message)                                
+                message.messageid_get(pMessage, &current_message)                                           
 
                 ; Extract task
-                message.task_get(pMessage, &pTask)
+                message.task_get(pMessage, &pTask)                                              
 
                 ; If the message is for the desktop dispatch it                
                 if (fptr.compare(pTask, desktop.DESKTOP) == fptr.compare_equal) {
@@ -192,7 +196,7 @@ api {
                 } else if (fptr.isnull(&pTask) == false ) {    
 
                     ; Extract component
-                    message.task_get(pMessage, &pComponent)
+                    message.task_get(pMessage, &pTask)
                     
                     ; Send the message to the one and only task it's meant for                    
                     send_message(pTask, pComponent, current_message, pMessage)                                                    
@@ -260,24 +264,46 @@ api {
                 
         ubyte[fptr.SIZEOF_FPTR] pTaskData;
         ubyte[fptr.SIZEOF_FPTR] pComponents;
+        ubyte[fptr.SIZEOF_FPTR] pComponent2
+        ubyte[fptr.SIZEOF_FPTR] pComponentData
+        uword componentId
 
         ; Get the taskdata from the task
         linkedlist_item.data_get(pTask, &pTaskData)   
 
         ; Get the component list for the task
         task.components_get(pTaskData, &pComponents)
+                
+        if fptr.isnull(pComponent) != true {
+        
+            linkedlist_item.data_get(pComponent, &pComponentData)               
+            component.componentId_get(pComponentData, &componentId)
+            process_component_message(pTask, componentId, pComponentData, messageId, pMessage)
+             
+        } else {
 
-        ; Walk the list
+            ; Walk the list
+            linkedlist.last(pComponents, pComponent2);                        
+            while fptr.isnull(&pComponent2) != true {
 
-            ; If pComponent == NULL process_component_message then run_task for component
-            ; If pComponent != NULL -> only for pComponent specified process_component_message then run_task for component
+                linkedlist_item.data_get(pComponent2, &pComponentData)                   
+                component.componentId_get(pComponentData, &componentId)
+                process_component_message(pTask, componentId, pComponentData, messageId, pMessage)                                                                            
 
+                linkedlist.prev(pComponent2, pComponent2);
+            }   
+        }                     
     }
 
-    sub process_component_message() {
-        ; nested when componentId
-            ; nested when messageId
-    }
+    sub process_component_message(ubyte[fptr.SIZEOF_FPTR] pTask, uword componentId, ubyte[fptr.SIZEOF_FPTR] pComponentData, uword messageId, ubyte[fptr.SIZEOF_FPTR] pMessage) {                
+        when componentId {
+            component.CM_LABEL -> {
+                when messageId {
+                    message.WM_PAINT -> label.paint(pTask, pComponentData)                        
+                }    
+            }
+        }
+    }    
     
     sub post_message(ubyte[fptr.SIZEOF_FPTR] pTask, ubyte[fptr.SIZEOF_FPTR] pComponent, uword messageId, uword param1, uword param2, ubyte[fptr.SIZEOF_FPTR] param3) {        
 
@@ -307,7 +333,7 @@ api {
         }
 
         ; Walk the list of controls on the form and dispatch to them...   
-        if messageId != message.WM_CONSUMED {
+        if messageId != message.WM_CONSUMED {            
             component_loop(pTask, pComponent, messageId, pMessage);
         }
 
@@ -378,33 +404,35 @@ api {
     }   
 
     sub add_component(ubyte[fptr.SIZEOF_FPTR] pTask, uword componentId, uword x, uword y, uword h, uword w, ubyte[fptr.SIZEOF_FPTR] pText, ubyte[fptr.SIZEOF_FPTR] pComponent ) {
-
+        
         ubyte[fptr.SIZEOF_FPTR] pTaskData
         ubyte[fptr.SIZEOF_FPTR] pComponents
-        ubyte[fptr.SIZEOF_FPTR] pComponentData
+        ubyte[fptr.SIZEOF_FPTR] pComponentData                
+        ubyte[fptr.SIZEOF_FPTR] pTextLocal
+
+        ; Make a local copy
+        %asm{{.byte $db}}
+        sys.memcopy(pText, &pTextLocal, 3)        
 
         ; Get the task data for this task
-        linkedlist_item.data_get(pTask, &pTaskData) 
+        linkedlist_item.data_get(pTask, &pTaskData)         
 
         ; Get the component list for this task
-        task.components_get(pTaskData, &pComponents)
+        task.components_get(pTaskData, &pComponents)        
 
         ; Allocate a new component
-        fmalloc.malloc(&main.fpm, component.COMPONENT_SIZEOF, pComponentData)
+        fmalloc.malloc(&main.fpm, component.COMPONENT_SIZEOF, pComponentData)                   
 
         ; Set the data
-        component.componentId_set(pComponentData, componentId)
-        component.x_set(pComponentData, x)
-        component.y_set(pComponentData, y)
-        component.h_set(pComponentData, h)
-        component.w_set(pComponentData, w)
-        component.text_set(pComponentData, pText)
+        component.componentId_set(pComponentData, &componentId)        
+        component.x_set(pComponentData, &x)        
+        component.y_set(pComponentData, &y)        
+        component.h_set(pComponentData, &h)        
+        component.w_set(pComponentData, &w)        
+        component.text_set(pComponentData, &pTextLocal)        
 
-        ; Add it to the list
-        emudbg.console_write(iso:"pComponents: ")
-        emudbg.console_write(main.format_fptr(pComponents))
-        emudbg.console_write(iso:"\r\n")
-        ;linkedlist.add_first(&main.fpm, pComponents, &pComponentData, pComponent);
+        ; Add it to the list        
+        linkedlist.add_first(&main.fpm, pComponents, &pComponentData, pComponent);
     }
 
     ; Launcher

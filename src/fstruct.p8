@@ -494,25 +494,25 @@ fptr {
     ; Needs bank work
     asmsub memcopy_in(uword fptr @R0, uword valuePointer @R1, ubyte count @X) clobbers (Y) {
     %asm {{    
-        ; Remember the bank
+        ; Remember the (source) bank
         lda $00 
         pha
 
-        ; Set Bank and extract pointer
-        ldy #$00
-        lda (cx16.r0),y
-        sta $00       
-        iny
+        ; Set Bank and extract pointer -> @R2 becomes pointer to destination
+        ldy #$01                      
         lda (cx16.r0),y
         sta cx16.r2L
         iny
         lda (cx16.r0),y
         sta cx16.r2H    
+        ldy #$00
+        lda (cx16.r0),y
+        sta $00 
 
         ldy #$00
         -                        
-        lda (cx16.r1),y   
-        sta (cx16.r2),y    
+        lda (cx16.r1),y     ; Load Source Bank before this.         On the stack    Maybe store in @R3h 
+        sta (cx16.r2),y     ; Load Destination bank before this.    (@R0)[0]        Maybe store in @R3l
         iny    
         dex
         bne -
@@ -527,25 +527,25 @@ fptr {
     ; Needs bank work
     asmsub memcopy_out(uword fptr @R0, uword valuePointer @R1, ubyte count @X) clobbers (Y) {
     %asm {{
-        ; Remember the bank
+        ; Remember the (destination) bank
         lda $00 
         pha
              
-        ; Set Bank and extract pointer
-        ldy #$00
-        lda (cx16.r0),y
-        sta $00       
-        iny
+        ; Set Bank and extract pointer -> @R2 becomes pointer to source
+        ldy #$01
         lda (cx16.r0),y
         sta cx16.r2L
         iny
         lda (cx16.r0),y
         sta cx16.r2H    
+        ldy #$00
+        lda (cx16.r0),y
+        sta $00       
 
         ldy #$00
         -                    
-        lda (cx16.r2),y 
-        sta (cx16.r1),y    
+        lda (cx16.r2),y     ; Load Source Bank before this.         (@R0)[0]        Maybe store in @R3l
+        sta (cx16.r1),y     ; Load Destination bank before this.    On the stack    Maybe store in @R3h 
         iny    
         dex
         bne -

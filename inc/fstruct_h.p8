@@ -13,6 +13,6 @@ fptr {
       
     romsub $0432 = set(uword fptr @R0, uword valuePointer @R1) clobbers (Y)  
     romsub $0435 = get(uword fptr @R0, uword valuePointer @R1) clobbers (Y)   
-    romsub $0432 = memcopy_in(uword fptr @R0, uword valuePointer @R1, ubyte count @X) clobbers (Y)
-    romsub $0438 = memcopy_out(uword fptr @R0, uword valuePointer @R1, ubyte count @X) clobbers (Y) 
+    romsub $0438 = memcopy_in(uword fptr @R0, uword valuePointer @R1, ubyte count @X) clobbers (Y)
+    romsub $043a = memcopy_out(uword fptr @R0, uword valuePointer @R1, ubyte count @X) clobbers (Y) 
 }

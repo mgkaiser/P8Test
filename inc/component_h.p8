@@ -1,7 +1,7 @@
 component {    
-    const uword CM_LABEL                = $01
+    const uword CM_LABEL                = $0001
 
-    const ubyte COMPONENT_SIZEOF        = $0f;    
+    const ubyte COMPONENT_SIZEOF        = $10;    
     const ubyte COMPONENT_ID            = $00; 2 - uword    
     const ubyte COMPONENT_X             = $02; 2 - uword
     const ubyte COMPONENT_Y             = $04; 2 - uword
