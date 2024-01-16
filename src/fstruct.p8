@@ -496,7 +496,7 @@ fptr {
     %asm {{    
         ; Remember the (source) bank
         lda $00 
-        pha
+        sta cx16.r3H 
 
         ; Set Bank and extract pointer -> @R2 becomes pointer to destination
         ldy #$01                      
@@ -505,20 +505,33 @@ fptr {
         iny
         lda (cx16.r0),y
         sta cx16.r2H    
+
+        ; Dest Bank
         ldy #$00
         lda (cx16.r0),y
-        sta $00 
+        sta cx16.r3L
 
         ldy #$00
-        -                        
+        -             
+
+        ; Get it from R3H:R1
+        lda cx16.r3H           
+        sta $00
         lda (cx16.r1),y     ; Load Source Bank before this.         On the stack    Maybe store in @R3h 
+
+        ; Get it from R3L:R2
+        pha
+        lda cx16.r3L
+        sta $00
+        pla
         sta (cx16.r2),y     ; Load Destination bank before this.    (@R0)[0]        Maybe store in @R3l
+        
         iny    
         dex
         bne -
 
         ; Restore the bank
-        pla
+        lda cx16.r3H   
         sta $00
 
     }}
@@ -527,9 +540,9 @@ fptr {
     ; Needs bank work
     asmsub memcopy_out(uword fptr @R0, uword valuePointer @R1, ubyte count @X) clobbers (Y) {
     %asm {{
-        ; Remember the (destination) bank
-        lda $00 
-        pha
+        ; Destination Bank
+        lda $00         
+        sta cx16.r3H
              
         ; Set Bank and extract pointer -> @R2 becomes pointer to source
         ldy #$01
@@ -539,19 +552,32 @@ fptr {
         lda (cx16.r0),y
         sta cx16.r2H    
         ldy #$00
+
+        ; Source Bank
         lda (cx16.r0),y
-        sta $00       
+        sta cx16.r3L              
 
         ldy #$00
-        -                    
+        -       
+
+        ; Get it from R3L:R2
+        lda cx16.r3L
+        sta $00            
         lda (cx16.r2),y     ; Load Source Bank before this.         (@R0)[0]        Maybe store in @R3l
+
+        ; Store it in r3H:R1
+        pha
+        lda cx16.r3H
+        sta $00            
+        pla
         sta (cx16.r1),y     ; Load Destination bank before this.    On the stack    Maybe store in @R3h 
+
         iny    
         dex
         bne -
 
         ; Restore the bank
-        pla
+        lda cx16.r3H
         sta $00
 
     }}

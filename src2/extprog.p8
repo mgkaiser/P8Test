@@ -90,10 +90,13 @@ main $A008 {
 
         ; Add the label
         str text = "fart";
-        fmalloc.malloc(16, &pText);
-        %asm{{.byte $db}}
+        fmalloc.malloc(16, &pText);        
         fptr.memcopy_in(&pText, &text, 5);                    
         api.add_component(pTask, component.CM_LABEL, 8, 8, 8, 40, pText, pComponent)     
+
+        str text2 = "brain";
+        fmalloc.malloc(16, &pText);        
+        fptr.memcopy_in(&pText, &text2, 6);                            
         api.add_component(pTask, component.CM_LABEL, 8, 16, 8, 40, pText, pComponent)                     
         
     }

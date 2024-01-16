@@ -410,8 +410,7 @@ api {
         ubyte[fptr.SIZEOF_FPTR] pComponentData                
         ubyte[fptr.SIZEOF_FPTR] pTextLocal
 
-        ; Make a local copy
-        %asm{{.byte $db}}
+        ; Make a local copy        
         sys.memcopy(pText, &pTextLocal, 3)        
 
         ; Get the task data for this task
