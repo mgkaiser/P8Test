@@ -78,7 +78,7 @@ window {
 
     sub top(ubyte[fptr.SIZEOF_FPTR] pTask) {
 
-        emudbg.console_write(iso:"window.top\r\n")
+        ;emudbg..console_write(iso:"window.top\r\n")
 
         ; Move window to top and repaint
         linkedlist.movetop(&main.fpm, &api.pTaskList, pTask)            
@@ -99,7 +99,7 @@ window {
         uword mouseX
         uword mouseY   
 
-        emudbg.console_write(iso:"window.mouseUp\r\n")     
+        ;emudbg..console_write(iso:"window.mouseUp\r\n")     
 
         ; Get the window dimensions
         linkedlist_item.data_get(pTask, &pTaskData)   
@@ -142,12 +142,12 @@ window {
     }
 
     sub mouseDown(ubyte[fptr.SIZEOF_FPTR] pTask, ubyte[fptr.SIZEOF_FPTR] pMessage, bool left) -> bool {
-        emudbg.console_write(iso:"window.mouseDown\r\n")        
+        ;emudbg..console_write(iso:"window.mouseDown\r\n")        
         return true
     }
 
     sub enter (ubyte[fptr.SIZEOF_FPTR] pTask) -> bool {
-        emudbg.console_write(iso:"window.enter\r\n")
+        ;emudbg..console_write(iso:"window.enter\r\n")
 
         ; Set the focus flags_done_get
         task.flags_hasfocus_set(pTask)   
@@ -166,7 +166,7 @@ window {
     }
 
     sub leave (ubyte[fptr.SIZEOF_FPTR] pTask) -> bool {
-        emudbg.console_write(iso:"window.leave\r\n")
+        ;emudbg..console_write(iso:"window.leave\r\n")
         task.flags_hasfocus_clear(pTask)        
         return true
     }

@@ -168,7 +168,7 @@ api {
         ubyte[fptr.SIZEOF_FPTR] pMessage;   
         uword current_message                      
 
-        emudbg.console_write(iso:"inside mainloop\r\n")                                
+        ;emudbg..console_write(iso:"inside mainloop\r\n")                                
         
         while true {    
 
@@ -348,7 +348,7 @@ api {
     
     sub process_message(ubyte[fptr.SIZEOF_FPTR] pTask, uword messageId, ubyte[fptr.SIZEOF_FPTR] pMessage) -> bool {     
         bool result;          
-        ;emudbg.console_value1($05)          
+        ;;emudbg..console_value1($05)          
         ;%asm{{ .byte $db }}
         when messageId {
             message.WM_PAINT -> result = window.paint(pTask)                        
@@ -361,7 +361,7 @@ api {
             message.WM_LEAVE -> result = window.leave(pTask)
             message.WM_TOP -> window.top(pTask)
         }
-        ;emudbg.console_value1($15)          
+        ;;emudbg..console_value1($15)          
         return result;
     }
 
@@ -494,9 +494,9 @@ api {
             linkedlist.add_first(&main.fpm, pTaskList, &pTaskData, pTask);                                                  
 
             ; If it loaded run it's init method
-            ;emudbg.console_value1($20) 
+            ;;emudbg..console_value1($20) 
             run(pTaskImage[0], API_INIT, 0, 0, pTask, 0)                                                          
-            ;emudbg.console_value1($21) 
+            ;;emudbg..console_value1($21) 
 
             return true
         } else {
@@ -515,7 +515,7 @@ api {
         task.taskimage_get(pTaskData, &pTaskImage)                            
 
         ; Run the run method
-        ;emudbg.console_value1($06)          
+        ;;emudbg..console_value1($06)          
         ;%asm{{ .byte $db }}
         run(pTaskImage[0], API_RUN, messageId, &pMessage, pTask, pComponent)  
         
@@ -533,7 +533,7 @@ api {
         task.taskimage_get(pTaskData, &pTaskImage)             
         
         ; Run the done method - This should at least free the state, clean anything else up too.
-        ;emudbg.console_value1($07)          
+        ;;emudbg..console_value1($07)          
         ;%asm{{ .byte $db }}
         run(pTaskImage[0], API_DONE, 0, 0, pTask, 0)  
 
@@ -556,11 +556,11 @@ api {
     }
 
     sub run (ubyte bank, uword messageId, uword param1, uword param2, uword pTask, uword pComponent) {
-        ;emudbg.console_value1($08)          
+        ;;emudbg..console_value1($08)          
         ;%asm{{ .byte $db }}
         cx16.rambank(bank);        
         external_command(messageId, param1, param2, pTask, pComponent);
-        ;emudbg.console_value1($18)
+        ;;emudbg..console_value1($18)
         ;%asm{{ .byte $db }}
     }    
 

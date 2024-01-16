@@ -6,7 +6,7 @@ desktop {
 
     sub paint () {
 
-        emudbg.console_write(iso:"desktop.paint\r\n")
+        ;emudbg..console_write(iso:"desktop.paint\r\n")
 
         if monogfx2.drawPage == 0 {
             monogfx2.showpage0()
@@ -23,7 +23,7 @@ desktop {
     }
 
     sub paint_done() {
-        emudbg.console_write(iso:"desktop.paint_done\r\n")
+        ;emudbg..console_write(iso:"desktop.paint_done\r\n")
         if monogfx2.drawPage == 0 {
             monogfx2.showpage0()
         } else {
@@ -43,7 +43,7 @@ desktop {
     }
 
     sub enter (ubyte[fptr.SIZEOF_FPTR] pTask)  {
-        emudbg.console_write(iso:"desktop.enter\r\n")
+        ;emudbg..console_write(iso:"desktop.enter\r\n")
         
         ; Send leave to any other window or desktop that has focus   
         if fptr.isnull(api.pFocusTask) != true {
@@ -57,7 +57,7 @@ desktop {
     }
 
     sub leave (ubyte[fptr.SIZEOF_FPTR] pTask) -> bool {
-        emudbg.console_write(iso:"desktop.leave\r\n")
+        ;emudbg..console_write(iso:"desktop.leave\r\n")
         
         return true
     }

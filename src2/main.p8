@@ -5,7 +5,7 @@
 %import linkedlist
 %import queue
 %import monogfx2
-%import emudbg
+;%import emudbg
 
 %option no_sysinit
 %zeropage basicsafe
@@ -47,19 +47,19 @@ main {
     sub task_test() {
         ubyte[fptr.SIZEOF_FPTR] pTask;                     
         
-        emudbg.console_write(iso:"Creating Task 1\r\n") 
+        ;emudbg..console_write(iso:"Creating Task 1\r\n") 
         void api.init_task("extprog.prg", "window 1", 10, 10, 100, 100, &pTask);          
-        emudbg.console_write(iso:"\r\n") 
+        ;emudbg..console_write(iso:"\r\n") 
 
-        emudbg.console_write(iso:"Creating Task 2\r\n") 
+        ;emudbg..console_write(iso:"Creating Task 2\r\n") 
         void api.init_task("extprog.prg", "window 2", 80, 80, 100, 100, &pTask);                          
-        emudbg.console_write(iso:"\r\n") 
+        ;emudbg..console_write(iso:"\r\n") 
 
-        emudbg.console_write(iso:"Creating Task 3\r\n") 
+        ;emudbg..console_write(iso:"Creating Task 3\r\n") 
         void api.init_task("extprog.prg", "window 3", 90, 120, 100, 100, &pTask);                  
-        emudbg.console_write(iso:"\r\n") 
+        ;emudbg..console_write(iso:"\r\n") 
 
-        emudbg.console_write(iso:"Starting Main Loop\r\n") 
+        ;emudbg..console_write(iso:"Starting Main Loop\r\n") 
         api.mainloop()  
         
     }
